@@ -34,5 +34,5 @@ jobs:
       run: flutter test 
 
     - name: Build APK (Optional - to check if it builds)
-      run: flutter build apk --debug --no-sound-null-safety
+      run: flutter build apk --debug 
       
