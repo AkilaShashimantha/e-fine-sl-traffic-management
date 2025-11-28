@@ -1,6 +1,9 @@
 const Station = require('../models/stationModel');
 const Verification = require('../models/verificationModel');
 const sendEmail = require('../utils/sendEmail');
+const bcrypt = require('bcryptjs');
+const Police = require('../models/policeModel'); // Police Model 
+const generateToken = require('../utils/generateToken');
 
 // @desc    Request OTP for Police Registration
 // @route   POST /api/auth/request-verification
@@ -86,4 +89,79 @@ const htmlMessage = `
   }
 };
 
-module.exports = { requestVerification };
+const verifyOTP = async (req, res) => {
+  const { badgeNumber, otp } = req.body;
+
+  try {
+    
+    const record = await Verification.findOne({ badgeNumber, otp });
+
+    if (!record) {
+      return res.status(400).json({ success: false, message: 'Invalid or Expired OTP' });
+    }
+
+    
+    res.status(200).json({ success: true, message: 'OTP Verified Successfully' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Register New Police Officer
+// @route   POST /api/auth/register-police
+const registerPolice = async (req, res) => {
+  const { name, badgeNumber, email, password, station, otp } = req.body;
+
+  try {
+
+    //check actually otp is verified
+    const verifiedRecord = await Verification.findOne({ badgeNumber, otp });
+    if (!verifiedRecord) {
+      return res.status(401).json({ message: 'Unauthorized: Please verify OTP first' });
+    }
+
+
+    //check user already sign up
+    const officerExists = await Police.findOne({ badgeNumber });
+    if (officerExists) {
+      return res.status(400).json({ message: 'Officer already registered' });
+    }
+
+    
+    //encript the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    
+    //save the details of policemen in database
+    const officer = await Police.create({
+      name,
+      badgeNumber,
+      email,
+      password: hashedPassword,
+      station,
+    });
+
+   
+    //clear the used OTP
+    await Verification.deleteMany({ badgeNumber });
+
+    if (officer) {
+      res.status(201).json({
+        success: true,
+        _id: officer.id,
+        name: officer.name,
+        email: officer.email,
+        token: generateToken(officer.id), //send the Login Token 
+      });
+    } else {
+      res.status(400).json({ message: 'Invalid officer data' });
+    }
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+module.exports = { requestVerification, verifyOTP, registerPolice};
