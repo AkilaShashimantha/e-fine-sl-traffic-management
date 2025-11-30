@@ -2,7 +2,7 @@ const Station = require('../models/stationModel');
 const Verification = require('../models/verificationModel');
 const sendEmail = require('../utils/sendEmail');
 const bcrypt = require('bcryptjs');
-const Police = require('../models/policeModel'); // Police Model 
+const Police = require('../models/policeModel'); 
 const generateToken = require('../utils/generateToken');
 const Driver = require('../models/driverModel');
 
@@ -246,5 +246,133 @@ const loginUser = async (req, res) => {
   }
 };
 
+// @desc    Forgot Password - Send OTP
+// @route   POST /api/auth/forgot-password
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
 
-module.exports = { requestVerification, verifyOTP, registerPolice, registerDriver, loginUser};
+  try {
+    let user = null;
+    let role = '';
+
+    // 1. Check if user exists in Police collection
+    const officer = await Police.findOne({ email });
+    if (officer) {
+      user = officer;
+      role = 'police';
+    } else {
+      // 2. Check if user exists in Driver collection
+      const driver = await Driver.findOne({ email });
+      if (driver) {
+        user = driver;
+        role = 'driver';
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with this email' });
+    }
+
+    // 3. Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // 4. Save OTP to Verification collection (Reuse existing model)
+    // We use email as the identifier here instead of badgeNumber
+    await Verification.deleteMany({ badgeNumber: email }); // Clear old OTPs
+    await Verification.create({
+      badgeNumber: email, // Using email field as identifier
+      stationCode: 'RESET', // Dummy value for password reset
+      otp,
+    });
+
+    // 5. Send Email
+    const message = `
+      You requested a password reset.
+      Your OTP Code is: ${otp}
+      
+      If you did not request this, please ignore this email.
+    `;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset Code - E-Fine SL',
+      message,
+    });
+
+    res.status(200).json({ success: true, message: 'OTP sent to email', role });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Verify Reset OTP
+// @route   POST /api/auth/verify-reset-otp
+const verifyResetOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const record = await Verification.findOne({ badgeNumber: email, otp });
+
+    if (!record) {
+      return res.status(400).json({ success: false, message: 'Invalid or Expired OTP' });
+    }
+
+    res.status(200).json({ success: true, message: 'OTP Verified' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Reset Password
+// @route   POST /api/auth/reset-password
+const resetPassword = async (req, res) => {
+  const { email, newPassword, otp } = req.body;
+
+  try {
+    // Double check OTP
+    const record = await Verification.findOne({ badgeNumber: email, otp });
+    if (!record) {
+      return res.status(400).json({ message: 'Invalid request. Please verify OTP first.' });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update Password based on User Type
+    let updated = false;
+    
+    // Try update Police
+    const officer = await Police.findOneAndUpdate(
+      { email },
+      { password: hashedPassword }
+    );
+    if (officer) updated = true;
+
+    // Try update Driver if not Police
+    if (!updated) {
+      const driver = await Driver.findOneAndUpdate(
+        { email },
+        { password: hashedPassword }
+      );
+      if (driver) updated = true;
+    }
+
+    if (updated) {
+      // Clear OTP
+      await Verification.deleteMany({ badgeNumber: email });
+      res.status(200).json({ success: true, message: 'Password Reset Successful. Please Login.' });
+    } else {
+      res.status(404).json({ message: 'User not found to update' });
+    }
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+
+module.exports = { requestVerification, verifyOTP, registerPolice, registerDriver,forgotPassword, verifyResetOTP, resetPassword, loginUser};
+

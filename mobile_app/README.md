@@ -87,12 +87,6 @@ mobile_app/
 2. Run `flutter devices` to verify device connection.
 3. Run `flutter run` to launch the app.
 
-## Next Steps
-- Add authentication and user profile screens.
-- Integrate with backend API for real data.
-- Implement additional features (fine management, notifications, etc.).
-- Continue improving code structure and configuration.
-
 ---
 
 ## Recent Updates – Police Officer Registration & Login Implementation
@@ -137,13 +131,17 @@ mobile_app/
 ## Recent Changes & Next Steps
 
 ### Recent Changes
-- Improved PoliceSignupScreen with stepper, OTP, and validation.
-- LoginScreen now supports backend authentication.
-- Added searchable dropdown for station selection.
-- Token management with flutter_secure_storage.
+- Implemented PoliceSignupScreen with 3-step registration (OTP request, verification, profile creation).
+- Added input validation for NIC and phone number in registration.
+- Integrated backend authentication in LoginScreen with JWT token management.
+- Added searchable dropdown for station selection using `dropdown_search`.
+- AuthService now handles registration, login, and station fetching via HTTP.
+- Secure token storage using `flutter_secure_storage`.
+- Updated AndroidManifest.xml for local backend testing.
+- Add 'Forgot Password' and password reset flow for police login and driver login.
 
 ### Next Steps
-- Add 'Forgot Password' option for police login.
-- Implement Police Home Page with dashboard and actions.
-- Develop Driver Home Page for driver-specific features.
-- Expand authentication and user management features.
+- Implement Police Home Page with dashboard, actions, and notifications.
+- Develop Driver Home Page with driver-specific features and UI.
+- Add user profile management and editing.
+- Expand authentication, error handling, and user management features.

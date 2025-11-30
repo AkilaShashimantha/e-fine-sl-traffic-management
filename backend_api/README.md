@@ -87,13 +87,16 @@ Content-Type: application/json
 ## Recent Changes & Next Steps
 
 ### Recent Changes
-- Improved police registration flow and OTP verification.
-- Enhanced email template for OIC notifications.
-- Added police station master data seeding.
-- JWT-based login for police officers.
+- Implemented police registration flow with OTP verification via email to OIC.
+- Created and improved email templates for verification notifications.
+- Added police station master data seeding using `seeder.js`.
+- Integrated JWT-based login and authentication for police officers.
+- Developed new API endpoints for registration, OTP, login, and station listing.
+- Improved error handling and validation in controllers.
+- Refactored code for modularity (controllers, models, routes, utils).
+- Add 'Forgot Password' functionality for police login driver login.
 
 ### Next Steps
-- Add 'Forgot Password' functionality for police login.
 - Implement Police Home Page with dashboard and actions.
 - Develop Driver Home Page for driver-specific features.
 - Expand API endpoints for password reset and user management.
