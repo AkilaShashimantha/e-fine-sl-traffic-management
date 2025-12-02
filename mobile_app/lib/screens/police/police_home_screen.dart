@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'new_fine.dart'; // 1. මේක අනිවාර්යයෙන්ම තියෙන්න ඕන
 
 class PoliceHomeScreen extends StatefulWidget {
   const PoliceHomeScreen({super.key});
@@ -9,29 +10,25 @@ class PoliceHomeScreen extends StatefulWidget {
 }
 
 class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
-  // Storage eka access karanna object ekak
   final _storage = const FlutterSecureStorage();
 
-  // Variables (Default agayan)
   String officerName = "Loading..."; 
   String badgeNumber = ""; 
 
   @override
   void initState() {
     super.initState();
-    _loadUserData(); // Screen eka patan gannakotama data load karanna
+    _loadUserData(); 
   }
 
-  // Storage eken Namath, Badge ID ekath ganna function eka
   Future<void> _loadUserData() async {
-    // Login weddi save karapu 'name' saha 'badgeNumber' kiyawanna
     String? storedName = await _storage.read(key: 'name');
     String? storedBadge = await _storage.read(key: 'badgeNumber');
 
-    if (mounted) { // Screen eka thama thiyenawada balanna
+    if (mounted) { 
       setState(() {
-        officerName = storedName ?? "Officer"; // Namak nathi unoth default ekak
-        badgeNumber = storedBadge ?? "";       // ID ekak nathi unoth hiswata thiyanna
+        officerName = storedName ?? "Officer"; 
+        badgeNumber = storedBadge ?? "";       
       });
     }
   }
@@ -39,9 +36,9 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Background color
+      backgroundColor: Colors.grey[100], 
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D47A1), // Police Dark Blue
+        backgroundColor: const Color(0xFF0D47A1), 
         elevation: 0,
         title: const Text(
           "Traffic Control Unit", 
@@ -54,12 +51,12 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
           ),
         ],
       ),
-      drawer: const Drawer(), // Menu eka passe hadamu
+      drawer: const Drawer(), 
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. HEADER SECTION (Name & Badge ID)
+            // HEADER SECTION
             Container(
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
               decoration: const BoxDecoration(
@@ -77,7 +74,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                     children: [
                       const CircleAvatar(
                         radius: 30,
-                        backgroundImage: NetworkImage('https://cdn-icons-png.flaticon.com/512/206/206853.png'), // Placeholder Image
+                        backgroundImage: NetworkImage('https://cdn-icons-png.flaticon.com/512/206/206853.png'), 
                         backgroundColor: Colors.white,
                       ),
                       const SizedBox(width: 15),
@@ -89,11 +86,11 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                             style: TextStyle(color: Colors.blue[100], fontSize: 14),
                           ),
                           Text(
-                            officerName, // Backend eken apu nama
+                            officerName, 
                             style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "Badge ID: $badgeNumber", // Backend eken apu ID eka
+                            "Badge ID: $badgeNumber", 
                             style: const TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                         ],
@@ -106,7 +103,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
 
             const SizedBox(height: 20),
 
-            // 2. DASHBOARD GRID (Buttons)
+            // DASHBOARD GRID
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -118,20 +115,24 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                   ),
                   const SizedBox(height: 15),
                   
-                  // Grid Layout
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2, // Button 2k peliyata
+                    crossAxisCount: 2, 
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
                     children: [
+                      // 2. New Fine Button Link Fix
                       _buildMenuCard(
                         title: "New Fine",
                         icon: Icons.note_add_outlined,
                         color: Colors.redAccent,
                         onTap: () {
-                          // Fine page ekata yanna
+                           // මෙතනින් තමයි අලුත් පිටුවට යන්නේ
+                           Navigator.push(
+                             context,
+                             MaterialPageRoute(builder: (context) => const NewFineScreen()),
+                           );
                         },
                       ),
                       _buildMenuCard(
@@ -139,7 +140,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                         icon: Icons.qr_code_scanner,
                         color: Colors.blue,
                         onTap: () {
-                          // QR scan karana thanata
+                          // QR scan logic here
                         },
                       ),
                       _buildMenuCard(
@@ -147,7 +148,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                         icon: Icons.history,
                         color: Colors.orange,
                         onTap: () {
-                          // History page ekata
+                          // History logic here
                         },
                       ),
                       _buildMenuCard(
@@ -155,7 +156,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                         icon: Icons.person_outline,
                         color: Colors.green,
                         onTap: () {
-                          // Profile page ekata
+                          // Profile logic here
                         },
                       ),
                     ],
@@ -169,7 +170,6 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
     );
   }
 
-  // Lassanata Button hadana function eka
   Widget _buildMenuCard({required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
