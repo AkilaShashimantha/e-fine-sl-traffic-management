@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PoliceHomeScreen extends StatefulWidget {
   const PoliceHomeScreen({super.key});
@@ -8,9 +9,32 @@ class PoliceHomeScreen extends StatefulWidget {
 }
 
 class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
-  // Officer ge nama storage eken ganna puluwan passe
-  final String officerName = "Officer Perera"; 
-  final String stationName = "Colombo Fort";
+  // Storage eka access karanna object ekak
+  final _storage = const FlutterSecureStorage();
+
+  // Variables (Default agayan)
+  String officerName = "Loading..."; 
+  String badgeNumber = ""; 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData(); // Screen eka patan gannakotama data load karanna
+  }
+
+  // Storage eken Namath, Badge ID ekath ganna function eka
+  Future<void> _loadUserData() async {
+    // Login weddi save karapu 'name' saha 'badgeNumber' kiyawanna
+    String? storedName = await _storage.read(key: 'name');
+    String? storedBadge = await _storage.read(key: 'badgeNumber');
+
+    if (mounted) { // Screen eka thama thiyenawada balanna
+      setState(() {
+        officerName = storedName ?? "Officer"; // Namak nathi unoth default ekak
+        badgeNumber = storedBadge ?? "";       // ID ekak nathi unoth hiswata thiyanna
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +43,10 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D47A1), // Police Dark Blue
         elevation: 0,
-        title: const Text("Traffic Control Unit", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Traffic Control Unit", 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
@@ -27,12 +54,12 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
           ),
         ],
       ),
-      drawer: Drawer(), // Menu eka passe hadamu
+      drawer: const Drawer(), // Menu eka passe hadamu
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. HEADER SECTION (Name & Station)
+            // 1. HEADER SECTION (Name & Badge ID)
             Container(
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
               decoration: const BoxDecoration(
@@ -62,11 +89,11 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                             style: TextStyle(color: Colors.blue[100], fontSize: 14),
                           ),
                           Text(
-                            officerName,
+                            officerName, // Backend eken apu nama
                             style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            stationName,
+                            "Badge ID: $badgeNumber", // Backend eken apu ID eka
                             style: const TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                         ],
