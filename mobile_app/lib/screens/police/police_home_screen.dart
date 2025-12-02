@@ -122,13 +122,11 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
                     children: [
-                      // 2. New Fine Button Link Fix
                       _buildMenuCard(
                         title: "New Fine",
                         icon: Icons.note_add_outlined,
                         color: Colors.redAccent,
                         onTap: () {
-                           // මෙතනින් තමයි අලුත් පිටුවට යන්නේ
                            Navigator.push(
                              context,
                              MaterialPageRoute(builder: (context) => const NewFineScreen()),
@@ -170,6 +168,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
     );
   }
 
+  // CORRECTED FUNCTION: Used withValues() instead of withOpacity()
   Widget _buildMenuCard({required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
@@ -180,7 +179,8 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              // Changed here
+              color: Colors.grey.withValues(alpha: 0.1), 
               spreadRadius: 2,
               blurRadius: 5,
               offset: const Offset(0, 3),
@@ -193,7 +193,8 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                // Changed here
+                color: color.withValues(alpha: 0.1), 
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 35, color: color),
