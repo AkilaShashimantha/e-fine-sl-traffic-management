@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/fine_service.dart'; // <--- Meka wenas kala (../ wenuwata ../../)
+import 'package:geolocator/geolocator.dart'; // GPS location ganna
+import 'package:geocoding/geocoding.dart';   // Address hoyanna
+import '../../services/fine_service.dart';    // Backend service eka
 
 class NewFineScreen extends StatefulWidget {
   const NewFineScreen({super.key});
@@ -11,7 +13,7 @@ class NewFineScreen extends StatefulWidget {
 class _NewFineScreenState extends State<NewFineScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  // 2. Service Object eka hadaganna
+  // Service Object eka
   final FineService _fineService = FineService(); 
 
   // Text Controllers
@@ -20,8 +22,9 @@ class _NewFineScreenState extends State<NewFineScreen> {
   final TextEditingController _placeController = TextEditingController();
 
   // Data Variables
-  List<dynamic> _offenseList = []; // 3. List eka dan dynamic (API eken enne)
-  bool _isLoading = true;          // Data load wenakan loading ekak pennanna
+  List<dynamic> _offenseList = []; // Database eken ena list eka
+  bool _isLoading = true;          // Data load wena nisa
+  bool _isGettingLocation = false; // GPS load wena nisa
   
   // Selected Item Details
   String? _selectedOffenseId;      // Thoragaththa eke ID eka
@@ -30,10 +33,10 @@ class _NewFineScreenState extends State<NewFineScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchOffenseData(); // 4. Screen eka patan gannakotama data load karanna
+    _fetchOffenseData(); // Screen eka patan gannakotama data load karanna
   }
 
-  // Backend eken data ganna function eka
+  // 1. Backend eken data ganna function eka
   Future<void> _fetchOffenseData() async {
     try {
       final offenses = await _fineService.getOffenses();
@@ -41,7 +44,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
       if (mounted) {
         setState(() {
           _offenseList = offenses;
-          _isLoading = false; // Load wela iwarai
+          _isLoading = false; 
         });
       }
     } catch (e) {
@@ -49,7 +52,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
         setState(() {
           _isLoading = false;
         });
-        // Error ekak awoth pennanna
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading data. Check internet/server.'), 
@@ -60,11 +62,65 @@ class _NewFineScreenState extends State<NewFineScreen> {
     }
   }
 
+  // 2. Location ganna function eka (Aluth kotasa)
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isGettingLocation = true);
+
+    try {
+      // Permission illanawa
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Location permissions are denied';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Location permissions are permanently denied';
+      }
+
+      // Location eka gannawa
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high
+      );
+
+      // Coordinates walin Address eka hoyanawa
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude, 
+        position.longitude
+      );
+
+      // Text Field eka update karanawa
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        // Address eka hadaganna widiha
+        String address = "${place.street}, ${place.subLocality}, ${place.locality}";
+        
+        // Remove empty parts like "null, null"
+        address = address.replaceAll(RegExp(r'^, | ,$'), '').replaceAll(', ,', ',');
+        if (address.trim().isEmpty) address = "Unknown Location";
+
+        setState(() {
+          _placeController.text = address; 
+        });
+      }
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingLocation = false);
+      }
+    }
+  }
+
   // Dropdown eka wenas weddi wada karana function eka
   void _onOffenseChanged(String? offenseId) {
     if (offenseId == null) return;
 
-    // ID eken adala offense object eka list eken hoyaganna
     final selectedOffense = _offenseList.firstWhere(
       (item) => item['_id'] == offenseId,
       orElse: () => null,
@@ -73,7 +129,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
     if (selectedOffense != null) {
       setState(() {
         _selectedOffenseId = offenseId;
-        // Backend eken ena 'amount' eka ganak widihata convert karaganna
         _fineAmount = double.tryParse(selectedOffense['amount'].toString()) ?? 0.0;
       });
     }
@@ -85,10 +140,10 @@ class _NewFineScreenState extends State<NewFineScreen> {
         const SnackBar(content: Text('Processing Fine...')),
       );
       
-      // Submit logic eka methana liyanna puluwan passe
       print("License: ${_licenseController.text}");
       print("Selected ID: $_selectedOffenseId");
       print("Amount: $_fineAmount");
+      print("Location: ${_placeController.text}");
     }
   }
 
@@ -100,7 +155,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
         backgroundColor: const Color(0xFF0D47A1),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // 5. Loading nam spinner eka pennanna, nathnam Form eka pennanna
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator()) 
           : SingleChildScrollView(
@@ -116,7 +170,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // License Number
                     TextFormField(
                       controller: _licenseController,
                       decoration: InputDecoration(
@@ -130,7 +183,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // Vehicle Number
                     TextFormField(
                       controller: _vehicleController,
                       decoration: InputDecoration(
@@ -150,7 +202,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // 6. DYNAMIC DROPDOWN (Wenas karapu pradhana thana)
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: "Select Offense",
@@ -159,12 +210,11 @@ class _NewFineScreenState extends State<NewFineScreen> {
                         fillColor: Colors.grey[100],
                       ),
                       value: _selectedOffenseId,
-                      // List eken items hadanna
                       items: _offenseList.map<DropdownMenuItem<String>>((dynamic item) {
                         return DropdownMenuItem<String>(
-                          value: item['_id'], // Value eka vidihata ID eka
+                          value: item['_id'], 
                           child: Text(
-                            item['offenseName'], // Penwanne Nama
+                            item['offenseName'], 
                             overflow: TextOverflow.ellipsis,
                           ), 
                         );
@@ -176,12 +226,22 @@ class _NewFineScreenState extends State<NewFineScreen> {
 
                     const SizedBox(height: 15),
 
-                    // Location
+                    // --- LOCATION FIELD WITH BUTTON ---
                     TextFormField(
                       controller: _placeController,
                       decoration: InputDecoration(
                         labelText: "Place of Offense",
                         prefixIcon: const Icon(Icons.location_on),
+                        // GPS Button eka
+                        suffixIcon: IconButton(
+                          icon: _isGettingLocation 
+                              ? const SizedBox(
+                                  width: 20, height: 20, 
+                                  child: CircularProgressIndicator(strokeWidth: 2)
+                                )
+                              : const Icon(Icons.my_location, color: Colors.redAccent),
+                          onPressed: _getCurrentLocation, // Button ebuwama location gannawa
+                        ),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       validator: (value) => value!.isEmpty ? 'Enter location' : null,
@@ -189,7 +249,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Amount Display
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -212,7 +271,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
 
                     const SizedBox(height: 30),
 
-                    // Submit Button
                     SizedBox(
                       width: double.infinity,
                       height: 55,
