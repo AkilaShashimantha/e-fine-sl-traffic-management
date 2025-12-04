@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart'; // GPS location ganna
+import 'package:geocoding/geocoding.dart';   // Address hoyanna
+import '../../services/fine_service.dart';    // Backend service eka
+
 import '../../services/fine_service.dart'; 
 class NewFineScreen extends StatefulWidget {
   const NewFineScreen({super.key});
@@ -19,6 +23,9 @@ class _NewFineScreenState extends State<NewFineScreen> {
   final TextEditingController _placeController = TextEditingController();
 
   // Data Variables
+  List<dynamic> _offenseList = []; // Database eken ena list eka
+  bool _isLoading = true;          // Data load wena nisa
+  bool _isGettingLocation = false; // GPS load wena nisa
   List<dynamic> _offenseList = []; 
   bool _isLoading = true;          
   
@@ -29,6 +36,10 @@ class _NewFineScreenState extends State<NewFineScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchOffenseData(); // Screen eka patan gannakotama data load karanna
+  }
+
+  // 1. Backend eken data ganna function eka
     _fetchOffenseData(); 
   }
 
@@ -58,6 +69,65 @@ class _NewFineScreenState extends State<NewFineScreen> {
       }
     }
   }
+
+  // 2. Location ganna function eka (Aluth kotasa)
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isGettingLocation = true);
+
+    try {
+      // Permission illanawa
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Location permissions are denied';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Location permissions are permanently denied';
+      }
+
+      // Location eka gannawa
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high
+      );
+
+      // Coordinates walin Address eka hoyanawa
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude, 
+        position.longitude
+      );
+
+      // Text Field eka update karanawa
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        // Address eka hadaganna widiha
+        String address = "${place.street}, ${place.subLocality}, ${place.locality}";
+        
+        // Remove empty parts like "null, null"
+        address = address.replaceAll(RegExp(r'^, | ,$'), '').replaceAll(', ,', ',');
+        if (address.trim().isEmpty) address = "Unknown Location";
+
+        setState(() {
+          _placeController.text = address; 
+        });
+      }
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingLocation = false);
+      }
+    }
+  }
+
+  // Dropdown eka wenas weddi wada karana function eka
+  void _onOffenseChanged(String? offenseId) {
+    if (offenseId == null) return;
 
 
   void _onOffenseChanged(String? offenseId) {
@@ -111,7 +181,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // License Number
                     TextFormField(
                       controller: _licenseController,
                       decoration: InputDecoration(
@@ -125,7 +194,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // Vehicle Number
                     TextFormField(
                       controller: _vehicleController,
                       decoration: InputDecoration(
@@ -170,12 +238,22 @@ class _NewFineScreenState extends State<NewFineScreen> {
 
                     const SizedBox(height: 15),
 
-                    // Location
+                    // --- LOCATION FIELD WITH BUTTON ---
                     TextFormField(
                       controller: _placeController,
                       decoration: InputDecoration(
                         labelText: "Place of Offense",
                         prefixIcon: const Icon(Icons.location_on),
+                        // GPS Button eka
+                        suffixIcon: IconButton(
+                          icon: _isGettingLocation 
+                              ? const SizedBox(
+                                  width: 20, height: 20, 
+                                  child: CircularProgressIndicator(strokeWidth: 2)
+                                )
+                              : const Icon(Icons.my_location, color: Colors.redAccent),
+                          onPressed: _getCurrentLocation, // Button ebuwama location gannawa
+                        ),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       validator: (value) => value!.isEmpty ? 'Enter location' : null,
@@ -183,7 +261,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Amount Display
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -206,7 +283,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
 
                     const SizedBox(height: 30),
 
-                    // Submit Button
                     SizedBox(
                       width: double.infinity,
                       height: 55,
