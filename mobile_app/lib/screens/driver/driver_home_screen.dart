@@ -117,7 +117,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5)),
+                    BoxShadow(color: Colors.black.withAlpha((0.05 * 255).toInt()), blurRadius: 10, offset: const Offset(0, 5)),
                   ],
                 ),
                 child: Column(
@@ -226,7 +226,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2)),
+            BoxShadow(color: Colors.black.withAlpha((0.05 * 255).toInt()), blurRadius: 5, offset: const Offset(0, 2)),
           ],
         ),
         child: Column(
@@ -235,7 +235,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withAlpha((0.1 * 255).toInt()),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 30, color: color),

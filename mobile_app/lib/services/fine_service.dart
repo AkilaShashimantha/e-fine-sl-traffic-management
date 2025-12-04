@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 class FineService {
   // ------------------------------------------------------------------
@@ -20,7 +20,7 @@ class FineService {
   // OPTION 3: Ngrok (Internet haraha yawanawa nam witharak meka ona)
   // static const String baseUrl = 'https://pluckiest-untolled-gwenda.ngrok-free.dev/api/fines';
   
-  final _storage = const FlutterSecureStorage();
+
 
   // Database eken Offense list eka ganna function eka
   Future<List<dynamic>> getOffenses() async {
