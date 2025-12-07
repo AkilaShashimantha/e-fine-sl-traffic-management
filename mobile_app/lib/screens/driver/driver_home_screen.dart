@@ -4,7 +4,7 @@ import 'package:mobile_app/services/auth_service.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../auth/login_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -22,16 +22,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   int currentPoints = 18; 
   int maxPoints = 24;
 
- 
-  String _getGreeting() {
+ String _getGreetingKey() {
     var hour = DateTime.now().hour;
-    if (hour < 12) {
-      return 'Good Morning,';
-    } else if (hour < 17) {
-      return 'Good Afternoon,';
-    } else {
-      return 'Good Evening,';
-    }
+    if (hour < 12) return 'greeting_morning';
+    if (hour < 17) return 'greeting_afternoon';
+    return 'greeting_evening';
   }
 
   bool hasPendingFines = true;
@@ -109,9 +104,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   String _getStatusMessage() {
-    if (currentPoints > 20) return "Excellent Standing";
-    if (currentPoints > 10) return "Warning Level";
-    return "High Risk of Suspension!";
+    if (currentPoints > 20) return "status_excellent"; 
+    if (currentPoints > 10) return "status_warning";   
+    return "status_risk";                              
   }
 
   // Helper for Action Grid
@@ -154,6 +149,23 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         elevation: 0,
         title: const Text("e-Fine SL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
+
+          // --- LANGUAGE CHANGE BUTTON 
+        TextButton(
+            onPressed: () {
+              if (context.locale.languageCode == 'en') {
+                context.setLocale(const Locale('si')); // (Locale('si'))
+              } else {
+                context.setLocale(const Locale('en')); //(Locale('en'))
+              }
+            },
+            child: Text(
+              context.locale.languageCode == 'en' ? 'සිං' : 'ENG',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          // ---------------------------------------------
+
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {},
@@ -188,7 +200,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text( _getGreeting(), style: const TextStyle(color: Colors.white70, fontSize: 14),),
+                      // --- TRANSLATED TEXT ---
+                      Text(
+                        _getGreetingKey().tr(), // .tr() change according to language 
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
                       Text(
                         driverName,
                         style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
@@ -215,17 +231,17 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     children: [
                       const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 30),
                       const SizedBox(width: 15),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Unpaid Fines Detected!",
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16),
+                              "unpaid_title".tr(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16),
                             ),
                             Text(
-                              "You have pending fines. Pay now to avoid demerit points.",
-                              style: TextStyle(color: Colors.black54, fontSize: 12),
+                              "unpaid_msg".tr(),
+                              style: const TextStyle(color: Colors.black54, fontSize: 12),
                             ),
                           ],
                         ),
@@ -258,7 +274,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
                 child: Column(
                   children: [
-                    const Text("Driver Rating Status", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
+                    Text("rating_status".tr(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
                     const SizedBox(height: 20),
                     CircularPercentIndicator(
                       radius: 80.0,
@@ -272,13 +288,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             "$currentPoints / $maxPoints",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: _getStatusColor()),
                           ),
-                          const Text("Points", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text("points".tr(), style: TextStyle(fontSize: 12, color: Colors.grey)),
                         ],
                       ),
                       footer: Padding(
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
-                          _getStatusMessage(),
+                          _getStatusMessage().tr(),
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: _getStatusColor()),
                         ),
                       ),
@@ -303,10 +319,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  _buildActionCard(Icons.payment, "Pay Fines", Colors.orange, () { }),
-                  _buildActionCard(Icons.history, "History", Colors.blue, () { }),
-                  _buildActionCard(Icons.wallet, "Digital Wallet", Colors.purple, () { }),
-                  _buildActionCard(Icons.report_problem, "Report", Colors.red, () { }),
+                  _buildActionCard(Icons.payment, "pay_fines".tr(), Colors.orange, () { }),
+                  _buildActionCard(Icons.history, "history".tr(), Colors.blue, () { }),
+                  _buildActionCard(Icons.wallet, "wallet".tr(), Colors.purple, () { }),
+                  _buildActionCard(Icons.report_problem, "report".tr(), Colors.red, () { }),
                 ],
               ),
             ),
@@ -320,13 +336,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         selectedItemColor: Colors.green[800],
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "Wallet"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "home".tr()),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "wallet".tr()),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "profile".tr()),
         ],
         onTap: (index) {
-          if (index == 2) { // Profile Tab එක එබුවොත්
+          if (index == 2) { 
             _showProfileDetails();
           }
         },
