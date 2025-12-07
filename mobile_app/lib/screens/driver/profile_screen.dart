@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Map<String, dynamic> userData;
 
-  // අපි මේ Page එකට එනකොටම User Data ටික අරගෙන එනවා
   const ProfileScreen({super.key, required this.userData});
 
   @override
@@ -11,7 +11,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text("My Profile"),
+        title: Text("my_profile".tr()),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
       ),
@@ -19,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 30),
-            
+
             // Profile Picture Area
             Center(
               child: Column(
@@ -32,13 +32,18 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     child: const CircleAvatar(
                       radius: 60,
-                      backgroundImage: AssetImage('assets/icon/icon.png'),
+                      backgroundImage: AssetImage(
+                        'assets/icos/app_icon/app_logo.png',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 15),
                   Text(
                     userData['name'],
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     userData['email'],
@@ -67,13 +72,32 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildProfileRow(Icons.credit_card, "NIC Number", userData['nic']),
+                  _buildProfileRow(
+                    Icons.credit_card,
+                    "nic_label".tr(),
+                    userData['nic'],
+                  ),
                   const Divider(),
-                  _buildProfileRow(Icons.drive_eta, "License No", userData['licenseNumber']),
+                  _buildProfileRow(
+                    Icons.drive_eta,
+                    "license_label".tr(),
+                    userData['licenseNumber'],
+                  ),
                   const Divider(),
-                  _buildProfileRow(Icons.phone, "Mobile No", userData['phone']),
+                  _buildProfileRow(
+                    Icons.phone,
+                    "mobile_label".tr(),
+                    userData['phone'],
+                  ),
                   const Divider(),
-                  _buildProfileRow(Icons.warning_amber, "Demerit Points", "${userData['demeritPoints']} Points", isHighlight: true),
+                  _buildProfileRow(
+                    Icons.warning_amber,
+                    "demerits_label".tr(),                
+                    "points_display".tr(
+                      args: [userData['demeritPoints'].toString()],
+                    ),
+                    isHighlight: true,
+                  ),
                 ],
               ),
             ),
@@ -83,8 +107,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Helper Widget (Row එකක් හදන්න)
-  Widget _buildProfileRow(IconData icon, String label, String value, {bool isHighlight = false}) {
+  Widget _buildProfileRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool isHighlight = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
@@ -101,12 +129,15 @@ class ProfileScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(
+                label,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
               const SizedBox(height: 2),
               Text(
                 value,
                 style: TextStyle(
-                  fontWeight: FontWeight.bold, 
+                  fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: isHighlight ? Colors.red : Colors.black87,
                 ),
