@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart'; // GPS location ganna
 import 'package:geocoding/geocoding.dart';   // Address hoyanna
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // 1. Storage Import
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Storage Import
 
 import '../../services/fine_service.dart';    // Backend service eka
 
@@ -18,7 +18,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
   // Service Object 
   final FineService _fineService = FineService();
   
-  // 2. Storage & Badge Number Variable
+  // Storage & Badge Number Variable
   final _storage = const FlutterSecureStorage();
   String? _currentBadgeNumber; 
 
@@ -40,10 +40,10 @@ class _NewFineScreenState extends State<NewFineScreen> {
   void initState() {
     super.initState();
     _fetchOffenseData(); 
-    _loadOfficerData(); // 3. Officer Data Load කරන function එක call කරනවා
+    _loadOfficerData(); 
   }
 
-  // --- Officer ගේ Badge Number එක ගන්න Function එක ---
+  // Officer ගේ Badge Number එක ගන්න Function එක
   Future<void> _loadOfficerData() async {
     String? badge = await _storage.read(key: 'badgeNumber');
     if (mounted) {
@@ -145,20 +145,17 @@ class _NewFineScreenState extends State<NewFineScreen> {
     }
   }
 
-  // --- SUBMIT FUNCTION EKA (STEP 3 UPDATE) ---
+  // SUBMIT FUNCTION EKA
   Future<void> _submitFine() async {
     if (_formKey.currentState!.validate()) {
       
-      // Loading patan gannawa
       setState(() => _isLoading = true);
 
-      // Offense name eka hoyagannawa
       final selectedOffenseObj = _offenseList.firstWhere(
          (element) => element['_id'] == _selectedOffenseId,
          orElse: () => {},
       );
 
-      // Data Map eka hadanawa
       Map<String, dynamic> fineData = {
         "licenseNumber": _licenseController.text,
         "vehicleNumber": _vehicleController.text,
@@ -166,16 +163,13 @@ class _NewFineScreenState extends State<NewFineScreen> {
         "offenseName": selectedOffenseObj['offenseName'] ?? 'Unknown', 
         "amount": _fineAmount,
         "place": _placeController.text,
-        // *** වැදගත්ම කොටස: Officer ID එකත් යවනවා ***
         "policeOfficerId": _currentBadgeNumber ?? "Unknown_Officer", 
       };
 
-      // Service ekata call karanawa
       bool success = await _fineService.issueNewFine(fineData);
 
       if (!mounted) return;
 
-      // Loading nawaththanawa
       setState(() => _isLoading = false);
 
       if (success) {
@@ -183,7 +177,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
           const SnackBar(content: Text('Fine Issued Successfully!'), backgroundColor: Colors.green),
         );
         
-        // Form eka clear karanawa
         _licenseController.clear();
         _vehicleController.clear();
         _placeController.clear();
@@ -263,7 +256,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                         filled: true,
                         fillColor: Colors.grey[100],
                       ),
-                      value: _selectedOffenseId, // Changed initialValue to value to handle reset
+                      value: _selectedOffenseId,
                       items: _offenseList.map<DropdownMenuItem<String>>((dynamic item) {
                         return DropdownMenuItem<String>(
                           value: item['_id'], 
