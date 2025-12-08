@@ -26,10 +26,12 @@ class _NewFineScreenState extends State<NewFineScreen> {
   List<dynamic> _offenseList = []; // Database eken ena list eka
   bool _isLoading = true;          // Data load wena nisa
   bool _isGettingLocation = false; // GPS load wena nisa
+  List<dynamic> _offenseList = []; 
+  bool _isLoading = true;          
   
   // Selected Item Details
-  String? _selectedOffenseId;      // Thoragaththa eke ID eka
-  double _fineAmount = 0.0;        // Gana
+  String? _selectedOffenseId;      
+  double _fineAmount = 0.0;        
 
   @override
   void initState() {
@@ -53,6 +55,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
         setState(() {
           _isLoading = false;
         });
+      
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error loading data. Check internet/server.'), 
@@ -115,6 +118,11 @@ class _NewFineScreenState extends State<NewFineScreen> {
   void _onOffenseChanged(String? offenseId) {
     if (offenseId == null) return;
 
+
+  void _onOffenseChanged(String? offenseId) {
+    if (offenseId == null) return;
+
+  
     final selectedOffense = _offenseList.firstWhere(
       (item) => item['_id'] == offenseId,
       orElse: () => null,
@@ -123,6 +131,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
     if (selectedOffense != null) {
       setState(() {
         _selectedOffenseId = offenseId;
+        
         _fineAmount = double.tryParse(selectedOffense['amount'].toString()) ?? 0.0;
       });
     }
@@ -194,6 +203,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
                     const SizedBox(height: 15),
 
+                
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: "Select Offense",
