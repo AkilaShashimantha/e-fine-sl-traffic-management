@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { getOffenses, addOffense } = require('../controllers/FineController');
 
 // 1. Controller එකෙන් අලුත් functions දෙකත් (issueFine, getFineHistory) මෙතනට import කරගන්න ඕන.
 const { 

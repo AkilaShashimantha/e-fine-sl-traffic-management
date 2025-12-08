@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Storage 
 
 import '../../services/fine_service.dart';    // Backend service eka
 
+// import '../../services/fine_service.dart'; 
 class NewFineScreen extends StatefulWidget {
   const NewFineScreen({super.key});
 
@@ -31,6 +32,9 @@ class _NewFineScreenState extends State<NewFineScreen> {
   List<dynamic> _offenseList = []; 
   bool _isLoading = true;          
   bool _isGettingLocation = false; 
+  List<dynamic> _offenseList = []; // Database eken ena list eka
+  bool _isLoading = true;          // Data load wena nisa
+  bool _isGettingLocation = false; // GPS load wena nisa
   
   // Selected Item Details
   String? _selectedOffenseId;      
@@ -53,6 +57,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
     }
   }
 
+  
   Future<void> _fetchOffenseData() async {
     try {
       final offenses = await _fineService.getOffenses();
@@ -136,7 +141,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
       (item) => item['_id'] == offenseId,
       orElse: () => null,
     );
-
     if (selectedOffense != null) {
       setState(() {
         _selectedOffenseId = offenseId;

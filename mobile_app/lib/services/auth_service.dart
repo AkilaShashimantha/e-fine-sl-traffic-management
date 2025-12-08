@@ -180,6 +180,53 @@ class AuthService {
     if (response.statusCode != 200) {
       throw Exception(jsonDecode(response.body)['message']);
     }
-  }
+  
 
 }
+// 9. Get User Profile
+
+ Future<Map<String, dynamic>> getUserProfile() async {
+    String? token = await _storage.read(key: 'token'); 
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/me'), 
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', 
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load profile');
+    }
+  }
+
+// 10. Verify Driver & Update Data
+  Future<void> verifyDriverLicense({
+    required String issueDate,
+    required String expiryDate,
+    required List<Map<String, String>> vehicleClasses,
+  }) async {
+    String? token = await _storage.read(key: 'token');
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/verify-driver'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'licenseIssueDate': issueDate,
+        'licenseExpiryDate': expiryDate,
+        'vehicleClasses': vehicleClasses,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(response.body)['message']);
+    }
+  }
+
+  }
