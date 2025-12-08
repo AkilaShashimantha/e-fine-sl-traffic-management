@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart'; 
-import 'package:geocoding/geocoding.dart';   
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; 
-
-import '../../services/fine_service.dart';    
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../services/fine_service.dart';
 
 class NewFineScreen extends StatefulWidget {
   const NewFineScreen({super.key});
@@ -16,15 +15,19 @@ class _NewFineScreenState extends State<NewFineScreen> {
   final _formKey = GlobalKey<FormState>();
   final FineService _fineService = FineService();
   final _storage = const FlutterSecureStorage();
+  
   String? _currentBadgeNumber; 
 
+  // Text Controllers
   final TextEditingController _licenseController = TextEditingController();
   final TextEditingController _vehicleController = TextEditingController();
   final TextEditingController _placeController = TextEditingController();
 
+  // Data Variables
   List<dynamic> _offenseList = []; 
   bool _isLoading = true;          
   bool _isGettingLocation = false; 
+  
   String? _selectedOffenseId;      
   double _fineAmount = 0.0;        
 
@@ -55,7 +58,9 @@ class _NewFineScreenState extends State<NewFineScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error loading data.'), backgroundColor: Colors.red),
         );
@@ -137,7 +142,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Fine Issued Successfully!'), backgroundColor: Colors.green),
         );
-        
         _licenseController.clear();
         _vehicleController.clear();
         _placeController.clear();
@@ -198,7 +202,8 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     const SizedBox(height: 25),
                     const Text("Offense Details", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     const SizedBox(height: 15),
-
+                    
+                    // ignore: deprecated_member_use
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: "Select Offense",
@@ -206,11 +211,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                         filled: true,
                         fillColor: Colors.grey[100],
                       ),
-                      
-                      // මෙන්න මෙතන තමයි Ignore එක දාන්න ඕන හරියටම
-                      // ignore: deprecated_member_use
                       value: _selectedOffenseId,
-                      
                       items: _offenseList.map<DropdownMenuItem<String>>((dynamic item) {
                         return DropdownMenuItem<String>(
                           value: item['_id'], 
