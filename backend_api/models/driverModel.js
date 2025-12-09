@@ -12,7 +12,20 @@ const driverSchema = mongoose.Schema(
     
     // (Demerit Points)
     demeritPoints: { type: Number, default: 0 }, 
-    licenseStatus: { type: String, enum: ['Active', 'Suspended'], default: 'Active' }
+    licenseStatus: { type: String, enum: ['Active', 'Suspended'], default: 'Active' },
+
+    isVerified: { type: Boolean, default: false },
+    // ...
+    licenseExpiryDate: { type: Date }, 
+    licenseIssueDate: { type: Date }, // 4a
+    dateOfBirth: { type: Date }, // 3
+    
+    vehicleClasses: [{
+        category: String, // A, B, B1
+        issueDate: Date,
+        expiryDate: Date
+    }],
+    // ...
   },
   { timestamps: true }
 );
