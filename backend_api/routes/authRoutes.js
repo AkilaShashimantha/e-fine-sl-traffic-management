@@ -26,7 +26,7 @@ router.post('/verify-reset-otp', verifyResetOTP);
 router.post('/reset-password', resetPassword);
 
 router.get('/me', protect, getMe);
-router.put('/verify-driver', verifyDriver);
+router.put('/verify-driver',protect, verifyDriver);
 
 module.exports = router;
 

@@ -417,7 +417,7 @@ const getMe = async (req, res) => {
 // @access  Private (Driver Only)
 const verifyDriver = async (req, res) => {
   try {
-   
+  //  console.log("RECEIVED DATA:", req.body);
     const { licenseIssueDate, licenseExpiryDate, vehicleClasses } = req.body;
 
    

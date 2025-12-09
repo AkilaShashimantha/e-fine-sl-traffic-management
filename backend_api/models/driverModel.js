@@ -16,14 +16,14 @@ const driverSchema = mongoose.Schema(
 
     isVerified: { type: Boolean, default: false },
     // ...
-    licenseExpiryDate: { type: Date }, 
-    licenseIssueDate: { type: Date }, // 4a
-    dateOfBirth: { type: Date }, // 3
+    licenseExpiryDate: { type: String }, 
+    licenseIssueDate: { type: String }, // 4a
+    dateOfBirth: { type: String }, // 3
     
     vehicleClasses: [{
         category: String, // A, B, B1
-        issueDate: Date,
-        expiryDate: Date
+        issueDate: String,
+        expiryDate: String
     }],
     // ...
   },
