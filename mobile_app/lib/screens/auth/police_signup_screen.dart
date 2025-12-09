@@ -340,14 +340,15 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
               TextField(controller: _nameController, decoration: const InputDecoration(labelText: "Full Name", prefixIcon: Icon(Icons.person), border: OutlineInputBorder())),
               const SizedBox(height: 15),
 
-              // --- 2. NEW: RANK DROPDOWN ---
+              // --- 2. NEW: RANK DROPDOWN (Fixed: value -> initialValue) ---
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: "Select Rank / Position",
                   prefixIcon: Icon(Icons.security),
                   border: OutlineInputBorder(),
                 ),
-                value: _selectedRank,
+                // දෝෂය තිබුණු තැන: value වෙනුවට initialValue භාවිතා කර ඇත
+                initialValue: _selectedRank, 
                 items: _policeRanks.map((String rank) {
                   return DropdownMenuItem<String>(
                     value: rank,
