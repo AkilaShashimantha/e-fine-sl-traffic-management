@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart'; // GPS location ganna
-import 'package:geocoding/geocoding.dart';   // Address hoyanna
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Storage Import
-
-import '../../services/fine_service.dart';    // Backend service eka
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../services/fine_service.dart';
 
 // import '../../services/fine_service.dart'; 
 class NewFineScreen extends StatefulWidget {
@@ -15,12 +14,9 @@ class NewFineScreen extends StatefulWidget {
 
 class _NewFineScreenState extends State<NewFineScreen> {
   final _formKey = GlobalKey<FormState>();
-  
-  // Service Object 
   final FineService _fineService = FineService();
-  
-  // Storage & Badge Number Variable
   final _storage = const FlutterSecureStorage();
+  
   String? _currentBadgeNumber; 
 
   // Text Controllers
@@ -33,7 +29,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
   bool _isLoading = true;          // Data load wena nisa
   bool _isGettingLocation = false; // GPS load wena nisa
   
-  // Selected Item Details
   String? _selectedOffenseId;      
   double _fineAmount = 0.0;        
 
@@ -44,7 +39,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
     _loadOfficerData(); 
   }
 
-  // Officer ගේ Badge Number එක ගන්න Function එක
   Future<void> _loadOfficerData() async {
     String? badge = await _storage.read(key: 'badgeNumber');
     if (mounted) {
@@ -58,7 +52,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
   Future<void> _fetchOffenseData() async {
     try {
       final offenses = await _fineService.getOffenses();
-      
       if (mounted) {
         setState(() {
           _offenseList = offenses;
@@ -71,45 +64,28 @@ class _NewFineScreenState extends State<NewFineScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error loading data. Check internet/server.'), 
-            backgroundColor: Colors.red
-          ),
+          const SnackBar(content: Text('Error loading data.'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  // Location ganna function eka
   Future<void> _getCurrentLocation() async {
     setState(() => _isGettingLocation = true);
-
     try {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw 'Location permissions are denied';
-        }
+        if (permission == LocationPermission.denied) throw 'Location permissions are denied';
       }
+      if (permission == LocationPermission.deniedForever) throw 'Location permissions are permanently denied';
 
-      if (permission == LocationPermission.deniedForever) {
-        throw 'Location permissions are permanently denied';
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high
-      );
-
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude, 
-        position.longitude
-      );
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
         String address = "${place.street}, ${place.subLocality}, ${place.locality}";
-        
         address = address.replaceAll(RegExp(r'^, | ,$'), '').replaceAll(', ,', ',');
         if (address.trim().isEmpty) address = "Unknown Location";
 
@@ -117,23 +93,17 @@ class _NewFineScreenState extends State<NewFineScreen> {
           _placeController.text = address; 
         });
       }
-
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error getting location: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
       }
     } finally {
-      if (mounted) {
-        setState(() => _isGettingLocation = false);
-      }
+      if (mounted) setState(() => _isGettingLocation = false);
     }
   }
 
   void _onOffenseChanged(String? offenseId) {
     if (offenseId == null) return;
-
     final selectedOffense = _offenseList.firstWhere(
       (item) => item['_id'] == offenseId,
       orElse: () => null,
@@ -146,10 +116,8 @@ class _NewFineScreenState extends State<NewFineScreen> {
     }
   }
 
-  // SUBMIT FUNCTION EKA
   Future<void> _submitFine() async {
     if (_formKey.currentState!.validate()) {
-      
       setState(() => _isLoading = true);
 
       final selectedOffenseObj = _offenseList.firstWhere(
@@ -170,14 +138,12 @@ class _NewFineScreenState extends State<NewFineScreen> {
       bool success = await _fineService.issueNewFine(fineData);
 
       if (!mounted) return;
-
       setState(() => _isLoading = false);
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Fine Issued Successfully!'), backgroundColor: Colors.green),
         );
-        
         _licenseController.clear();
         _vehicleController.clear();
         _placeController.clear();
@@ -185,7 +151,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
           _selectedOffenseId = null;
           _fineAmount = 0.0;
         });
-
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to issue fine. Try again.'), backgroundColor: Colors.red),
@@ -202,7 +167,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
         backgroundColor: const Color(0xFF0D47A1),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator()) 
           : SingleChildScrollView(
@@ -212,12 +176,8 @@ class _NewFineScreenState extends State<NewFineScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Driver & Vehicle Details",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                    ),
+                    const Text("Driver & Vehicle Details", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     const SizedBox(height: 15),
-
                     TextFormField(
                       controller: _licenseController,
                       decoration: InputDecoration(
@@ -230,7 +190,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                       validator: (value) => value!.isEmpty ? 'Enter license number' : null,
                     ),
                     const SizedBox(height: 15),
-
                     TextFormField(
                       controller: _vehicleController,
                       decoration: InputDecoration(
@@ -242,14 +201,11 @@ class _NewFineScreenState extends State<NewFineScreen> {
                       ),
                       validator: (value) => value!.isEmpty ? 'Enter vehicle number' : null,
                     ),
-
                     const SizedBox(height: 25),
-                    const Text(
-                      "Offense Details",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                    ),
+                    const Text("Offense Details", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     const SizedBox(height: 15),
-
+                    
+                    // ignore: deprecated_member_use
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: "Select Offense",
@@ -261,10 +217,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                       items: _offenseList.map<DropdownMenuItem<String>>((dynamic item) {
                         return DropdownMenuItem<String>(
                           value: item['_id'], 
-                          child: Text(
-                            item['offenseName'], 
-                            overflow: TextOverflow.ellipsis,
-                          ), 
+                          child: Text(item['offenseName'], overflow: TextOverflow.ellipsis), 
                         );
                       }).toList(),
                       onChanged: _onOffenseChanged,
@@ -273,7 +226,6 @@ class _NewFineScreenState extends State<NewFineScreen> {
                     ),
 
                     const SizedBox(height: 15),
-
                     TextFormField(
                       controller: _placeController,
                       decoration: InputDecoration(
@@ -281,10 +233,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                         prefixIcon: const Icon(Icons.location_on),
                         suffixIcon: IconButton(
                           icon: _isGettingLocation 
-                              ? const SizedBox(
-                                  width: 20, height: 20, 
-                                  child: CircularProgressIndicator(strokeWidth: 2)
-                                )
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                               : const Icon(Icons.my_location, color: Colors.redAccent),
                           onPressed: _getCurrentLocation, 
                         ),
@@ -292,9 +241,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                       ),
                       validator: (value) => value!.isEmpty ? 'Enter location' : null,
                     ),
-
                     const SizedBox(height: 20),
-
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -307,16 +254,11 @@ class _NewFineScreenState extends State<NewFineScreen> {
                         children: [
                           const Text("Total Fine Amount", style: TextStyle(fontSize: 14, color: Colors.red)),
                           const SizedBox(height: 5),
-                          Text(
-                            "LKR ${_fineAmount.toStringAsFixed(2)}", 
-                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.red),
-                          ),
+                          Text("LKR ${_fineAmount.toStringAsFixed(2)}", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.red)),
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 30),
-
                     SizedBox(
                       width: double.infinity,
                       height: 55,
