@@ -181,8 +181,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
       ),
     );
   }
-
-  Widget _buildMenuCard({required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
+Widget _buildMenuCard({required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -220,4 +219,5 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
       ),
     );
   }
-}
+  }
+  
