@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class FineService {
   // ඔයාගේ IP එක (වෙනස් වුනොත් මෙතන මාරු කරන්න)
-  static const String baseUrl = 'http://10.159.39.6:5000/api'; 
+  static const String baseUrl = 'http://10.159.39.6:5000/api';
   final _storage = const FlutterSecureStorage();
 
   // ----------------------------------------------------------------
@@ -16,7 +16,7 @@ class FineService {
       if (token == null) return [];
 
       final response = await http.get(
-        Uri.parse('$baseUrl/fines/offenses'), 
+        Uri.parse('$baseUrl/fines/offenses'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -39,10 +39,12 @@ class FineService {
   Future<bool> issueFine(Map<String, dynamic> fineData) async {
     try {
       String? token = await _storage.read(key: 'token');
-      if (token == null) throw Exception("Token missing. Please Logout & Login.");
+      if (token == null) {
+        throw Exception("Token missing. Please Logout & Login.");
+      }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/fines/issue'), 
+        Uri.parse('$baseUrl/fines/issue'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -68,21 +70,23 @@ class FineService {
     try {
       String? token = await _storage.read(key: 'token');
       String? badge = await _storage.read(key: 'badgeNumber'); // Officer ID
-      
-      if (token == null || badge == null) throw Exception("Auth data missing. Logout and Login.");
+
+      if (token == null || badge == null) {
+        throw Exception("Auth data missing. Logout and Login.");
+      }
 
       // --- නිවැරදි කළ URL එක ---
       // ඔයා එවපු Route file එකේ තිබුනේ '/history' නිසා මෙතන '/fines/history' එන්න ඕනේ.
       // Database එකේ නම 'policeOfficerId' නිසා අපි ඒ නම Query Parameter එකක් විදියට යවනවා.
-      
+
       final uri = Uri.parse('$baseUrl/fines/history').replace(queryParameters: {
-        'policeOfficerId': badge, 
+        'policeOfficerId': badge,
       });
 
-      print("Calling URL: $uri"); // Debug කරන්න ලේසි වෙන්න
+      // print("Calling URL: $uri"); // Debug කරන්න ලේසි වෙන්න
 
       final response = await http.get(
-        uri, 
+        uri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
