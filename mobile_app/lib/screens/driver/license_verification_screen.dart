@@ -138,7 +138,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
     List<String> targetClasses = ['A1', 'A', 'B1', 'B', 'C1', 'C', 'CE', 'D1', 'D', 'G1', 'J'];
     RegExp datePattern = RegExp(r'^\d{2}[.]\d{2}[.]\d{4}$'); 
 
-    // Elements එකතු කරගැනීම
+    // Add elements to list
     List<TextElement> allElements = [];
     for (TextBlock block in recognizedText.blocks) {
       for (TextLine line in block.lines) {
@@ -148,7 +148,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
       }
     }
 
-    // වෙන් කිරීම
+    // Find category and date elements
     List<TextElement> foundCategoryElements = [];
     List<TextElement> foundDateElements = [];
 
@@ -164,15 +164,15 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
     // Matching Logic (Y-Axis Alignment)
     for (TextElement catEl in foundCategoryElements) {
       double catY = catEl.boundingBox.center.dy;
-      double yThreshold = 30.0; // උස පරතරය
+      double yThreshold = 30.0; // Y-axis threshold
 
       List<TextElement> matchingDates = foundDateElements.where((dateEl) {
         double dateY = dateEl.boundingBox.center.dy;
-        // Category එකට වඩා දකුණු පැත්තේ තිබිය යුතුයි
+        // Should be on the right side of the Category
         return (dateY - catY).abs() < yThreshold && dateEl.boundingBox.left > catEl.boundingBox.left;
       }).toList();
 
-      // වම් සිට දකුණට (Issue -> Expiry)
+      // Sort dates from left to right (Issue -> Expiry)
       matchingDates.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
 
       if (matchingDates.isNotEmpty) {
@@ -243,7 +243,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // Address එක එකතු කිරීම
+      // Adding the address
       String fullAddress = "${_street1Controller.text}, ${_street2Controller.text}";
 
       await AuthService().verifyDriverLicense(
