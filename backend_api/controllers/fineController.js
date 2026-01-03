@@ -27,7 +27,7 @@ const addOffense = async (req, res) => {
 // @desc    Issue a new fine (Save to Database)
 // @route   POST /api/fines/issue
 const issueFine = async (req, res) => {
-  const { licenseNumber, vehicleNumber, offenseId, offenseName, amount, place, policeOfficerId } = req.body;
+  const { licenseNumber, vehicleNumber, offenseId, offenseName, amount, place, policeOfficerId, date } = req.body;
 
   if (!licenseNumber || !vehicleNumber || !offenseId || !place || !policeOfficerId) {
     return res.status(400).json({ message: 'All fields are required' });
@@ -42,6 +42,7 @@ const issueFine = async (req, res) => {
       amount,
       place,
       policeOfficerId,
+      date: date || Date.now() // Use provided date or default to now
     });
 
     res.status(201).json(fine);
@@ -55,12 +56,8 @@ const issueFine = async (req, res) => {
 // @route   GET /api/fines/history
 const getFineHistory = async (req, res) => {
   try {
-    // --- වෙනස් කළ කොටස (UPDATED PART) ---
-    // Flutter App එකෙන් එවන්නේ 'policeOfficerId' කියන නම.
-    // ඒ නිසා අපි මෙතනත් ඒ නමම පාවිච්චි කරන්න ඕනේ.
     const { policeOfficerId } = req.query;
 
-    // policeOfficerId එකක් තියෙනවා නම් එයට අදාලව සොයනවා
     const query = policeOfficerId ? { policeOfficerId: policeOfficerId } : {};
 
     const history = await IssuedFine.find(query).sort({ createdAt: -1 });
@@ -83,7 +80,7 @@ const getDriverPendingFines = async (req, res) => {
 
     const fines = await IssuedFine.find({
       licenseNumber: licenseNumber,
-      status: { $in: ['Unpaid', 'Pending'] } // Check both just in case
+      status: { $in: ['Unpaid', 'Pending'] }
     }).sort({ createdAt: -1 });
 
     res.status(200).json(fines);
@@ -92,11 +89,62 @@ const getDriverPendingFines = async (req, res) => {
   }
 };
 
+// @desc    Mark fine as Paid (After PayHere Success)
+// @route   POST /api/fines/:id/pay
+const payFine = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentId } = req.body;
+
+    const fine = await IssuedFine.findById(id);
+
+    if (!fine) {
+      return res.status(404).json({ message: 'Fine not found' });
+    }
+
+    if (fine.status === 'Paid') {
+      return res.status(400).json({ message: 'Fine is already paid' });
+    }
+
+    fine.status = 'Paid';
+    fine.paymentId = paymentId;
+    fine.paidAt = Date.now();
+
+    await fine.save();
+
+    res.status(200).json({ message: 'Fine paid successfully', fine });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update payment', error: error.message });
+  }
+};
+
+// @desc    Get Paid Fine History for a Driver
+// @route   GET /api/fines/driver-history
+const getDriverPaidHistory = async (req, res) => {
+  try {
+    const { licenseNumber } = req.query;
+
+    if (!licenseNumber) {
+      return res.status(400).json({ message: 'License number is required' });
+    }
+
+    const fines = await IssuedFine.find({
+      licenseNumber: licenseNumber,
+      status: 'Paid'
+    }).sort({ paidAt: -1 });
+
+    res.status(200).json(fines);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch history', error: error.message });
+  }
+};
 
 module.exports = {
   getOffenses,
   addOffense,
   issueFine,
   getFineHistory,
-  getDriverPendingFines
+  getDriverPendingFines,
+  payFine,
+  getDriverPaidHistory
 };

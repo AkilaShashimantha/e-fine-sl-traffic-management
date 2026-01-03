@@ -8,6 +8,7 @@ import 'package:mobile_app/services/fine_service.dart';
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_app/screens/driver/pay_fine_screen.dart';
+import 'package:mobile_app/screens/driver/payment_history_screen.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -383,7 +384,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       // Open drawer to select fine to pay
                       _scaffoldKey.currentState?.openEndDrawer();
                   }),
-                  _buildActionCard(Icons.history, "history".tr(), Colors.blue, () { }),
+                  _buildActionCard(Icons.history, "history".tr(), Colors.blue, () { 
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (context) => const PaymentHistoryScreen())
+                      );
+                  }),
                   _buildActionCard(Icons.wallet, "wallet".tr(), Colors.purple, () { }),
                   _buildActionCard(Icons.report_problem, "report".tr(), Colors.red, () { }),
                 ],
@@ -503,28 +509,51 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                               const SizedBox(height: 5),
                               Text("Amount: LKR ${fine['amount']}", style: const TextStyle(color: Colors.black87)),
                               const SizedBox(height: 5),
+                              
+                              // Officer ID Row
+                              Row(
+                                children: [
+                                  const Icon(Icons.badge, size: 12, color: Colors.blueGrey),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    "Officer: ${fine['policeOfficerId'] ?? 'Unknown'}", 
+                                    style: const TextStyle(fontSize: 12, color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 5),
+
                               Row(
                                 children: [
                                   const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
                                   const SizedBox(width: 5),
-                                  Text(
-                                    (fine['createdAt'] != null) 
-                                    ? fine['createdAt'].toString().substring(0, 10) 
-                                    : "Just now",
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  Builder(
+                                    builder: (context) {
+                                      String dateStr = fine['date'] ?? fine['createdAt'] ?? DateTime.now().toIso8601String();
+                                      DateTime dt = DateTime.parse(dateStr);
+                                      String formattedDate = DateFormat('yyyy-MM-dd  hh:mm a').format(dt);
+                                      return Text(
+                                        formattedDate,
+                                        style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                                      );
+                                    }
                                   ),
                                 ],
                               )
                             ],
                           ),
                           trailing: ElevatedButton(
-                            onPressed: () {
-                               // Navigate to PayFineScreen
-                               Navigator.push(
-                                 context, 
-                                 MaterialPageRoute(builder: (context) => PayFineScreen(fine: fine))
-                               );
-                            },
+                            onPressed: () async {
+                    Navigator.pop(context); // Close Drawer
+                    bool? result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PayFineScreen(fine: fine)),
+                    );
+                    
+                    if (result == true) {
+                      _refreshData(); // Reload fines if paid
+                    }
+                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.red,
@@ -601,6 +630,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       } catch (e) {
         // Silent error
       }
+  }
+
+  void _refreshData() {
+     _checkPendingFines();
   }
 
   // Modern Top Snackbar implementation (simulated with standard SnackBar but styled)

@@ -6,8 +6,10 @@ const {
     addOffense,
     issueFine,
     getFineHistory,
-    getDriverPendingFines
-} = require('../controllers/fineController');
+    getDriverPendingFines,
+    payFine,
+    getDriverPaidHistory
+} = require('../controllers/FineController');
 
 // URL: /api/fines/offenses (දඩ වර්ග ටික ගන්න)
 router.get('/offenses', getOffenses);
@@ -20,11 +22,17 @@ router.post('/add', addOffense);
 // URL: /api/fines/issue (අලුත් දඩයක් ගහන්න - Data Save කරන්න)
 router.post('/issue', issueFine);
 
-// URL: /api/fines/history (ගහපු දඩ වල හිස්ට්‍රි එක ගන්න)
+// URL: /api/fines/history (ගහපු දඩ වල හිස්ට්‍රි එක ගන්න - Police Only)
 router.get('/history', getFineHistory);
 
 // URL: /api/fines/pending (Driver ගේ Pending දඩ ගන්න)
 router.get('/pending', getDriverPendingFines);
+
+// URL: /api/fines/driver-history (Driver ගේ Paid දඩ ගන්න)
+router.get('/driver-history', getDriverPaidHistory);
+
+// URL: /api/fines/:id/pay (දඩයක් ගෙවන්න)
+router.post('/:id/pay', payFine);
 
 module.exports = router;
 
