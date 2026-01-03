@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -158,6 +159,48 @@ class FineService {
         return [];
       }
     } catch (e) {
+      return [];
+    }
+  }
+
+  // Mark Fine as Paid
+  Future<bool> payFine(String fineId, String paymentId) async {
+    final url = Uri.parse('$baseUrl/fines/$fineId/pay');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'paymentId': paymentId}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint("PayFine Error: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      debugPrint("PayFine Exception: $e");
+      return false;
+    }
+  }
+
+  // Get Paid History
+  Future<List<Map<String, dynamic>>> getDriverPaidFines() async {
+    String? licenseNumber = await _storage.read(key: 'licenseNumber'); // Correct Key
+    if (licenseNumber == null) return [];
+
+    final url = Uri.parse('$baseUrl/fines/driver-history?licenseNumber=$licenseNumber');
+    try {
+      final response = await http.get(url, headers: {'Content-Type': 'application/json'});
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(json.decode(response.body));
+      } else {
+        return [];
+      }
+    } catch (e) {
+      debugPrint("Error fetching history: $e");
       return [];
     }
   }

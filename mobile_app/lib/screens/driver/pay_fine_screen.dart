@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app/services/fine_service.dart';
 import 'dart:convert';
 import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
 
@@ -116,6 +117,8 @@ class _PayFineScreenState extends State<PayFineScreen> {
     
     String? hash = await _getPayHereHash(orderId, amount);
 
+    if (!mounted) return; // Check mounted
+
     if (hash == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Security Error: Could not generate hash."), backgroundColor: Colors.red));
       return;
@@ -146,23 +149,34 @@ class _PayFineScreenState extends State<PayFineScreen> {
       "custom_2": ""
     };
 
-    print("---------------- PAYHERE DEBUG ----------------");
-    print("Merchant ID: $_merchantId");
-    print("Order ID: $orderId");
-    print("Hash: $hash");
-    print("-----------------------------------------------");
+    debugPrint("---------------- PAYHERE DEBUG ----------------");
+    debugPrint("Merchant ID: $_merchantId");
+    debugPrint("Order ID: $orderId");
+    debugPrint("Hash: $hash");
+    debugPrint("-----------------------------------------------");
 
     PayHere.startPayment(
       paymentObject, 
-      (paymentId) {
-        print("PayHere Success: $paymentId");
-        // Success
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment Successful!"), backgroundColor: Colors.green));
-        // TODO: Call Backend to update Fine Status to 'Paid'
-        Navigator.pop(context);
+      (paymentId) async {
+        debugPrint("PayHere Success: $paymentId");
+        
+        // Call Backend to update Fine Status
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Updating payment status...")));
+        
+        bool success = await FineService().payFine(widget.fine['_id'], paymentId);
+
+        if (!mounted) return; // Check mounted
+
+        if (success) {
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fine Paid Successfully!"), backgroundColor: Colors.green));
+           // Pop with Result TRUE to refresh previous screen
+           Navigator.pop(context, true); 
+        } else {
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment noted, but status update failed. Please contact support."), backgroundColor: Colors.orange));
+        }
       }, 
       (error) {
-        print("PayHere Error: $error");
+        debugPrint("PayHere Error: $error");
         // Error
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment Failed: $error"), backgroundColor: Colors.red));
       }, 
@@ -192,11 +206,11 @@ class _PayFineScreenState extends State<PayFineScreen> {
           final data = jsonDecode(response.body);
           return data['hash'];
         } else {
-           print("Hash Error: ${response.body}");
+           debugPrint("Hash Error: ${response.body}");
            return null;
         }
       } catch (e) {
-        print("Hash Exception: $e");
+        debugPrint("Hash Exception: $e");
         return null;
       }
   }

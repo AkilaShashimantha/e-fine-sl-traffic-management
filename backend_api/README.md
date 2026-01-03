@@ -41,10 +41,17 @@
 
 - Refactored to use `findByIdAndUpdate` for smoother updates without triggering strict schema validation on legacy data.
 
+### 💳 Payment Integration (PayHere)
+
+- **`POST /api/payment/hash`**: Generates a secure MD5 hash for PayHere transactions.
+- **`POST /api/fines/:id/pay`**: Marks a fine as 'Paid' and records the `paymentId` and `paidAt` timestamp.
+- **`GET /api/fines/driver-history`**: Retrieves the history of paid fines for a specific driver.
+
 ### 👮 Police Module
 
 - **OTP Verification:** Email-based OTP for secure officer registration.
 - **Station Management:** Seeding scripts for police station data.
+- **New Fine Issue:** Supports `date` field for accurate timestamping.
 
 ## API Endpoints Summary
 
@@ -57,12 +64,13 @@
 
 ### Fines
 
-- `POST /api/fines/issue` - Issue a new fine (Police).
-- `POST /api/fines/pay` - **(Coming Soon)** Process fine payment.
+- `POST /api/fines/issue` - Issue a new fine.
+- `GET /api/fines/pending` - Get unpaid fines.
+- `POST /api/fines/:id/pay` - Process payment.
+- `GET /api/fines/driver-history` - Get paid history.
 
 ## Future Plans & Roadmap
 
-- **💳 Payment Gateway:** Integrate **PayHere** for online fine settlements.
 - **📉 Demerit System:** Logic to automatically deduct points upon fine issuance/payment.
 - **📱 SMS Notifications:** Send SMS to drivers when a fine is issued.
 

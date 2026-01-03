@@ -9,6 +9,8 @@ const issuedFineSchema = mongoose.Schema({
     place: { type: String, required: true },
     policeOfficerId: { type: String, default: "Officer-001" }, // දැනට hardcode කරමු
     status: { type: String, default: "Unpaid" }, // ගෙව්වද නැද්ද කියන එක
+    paymentId: { type: String }, // PayHere Payment ID
+    paidAt: { type: Date }, // ගෙව්ව වෙලාව
     date: { type: Date, default: Date.now } // දඩ ගැහුව වෙලාව
 }, {
     timestamps: true

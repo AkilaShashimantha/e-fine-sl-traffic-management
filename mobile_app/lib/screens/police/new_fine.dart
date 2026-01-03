@@ -21,6 +21,8 @@ class _NewFineScreenState extends State<NewFineScreen> {
   final TextEditingController _vehicleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  late TextEditingController _dateController;
+  DateTime _selectedDate = DateTime.now();
 
   // Offense Data තියාගන්න Variables
   Map<String, dynamic>? _selectedOffenseData;
@@ -36,7 +38,12 @@ class _NewFineScreenState extends State<NewFineScreen> {
     super.initState();
     _licenseController =
         TextEditingController(text: widget.scannedLicenseNumber ?? "");
+    _dateController = TextEditingController(text: _formatDateTime(_selectedDate));
     _loadInitialData();
+  }
+
+  String _formatDateTime(DateTime dt) {
+     return "${dt.year}-${dt.month.toString().padLeft(2,'0')}-${dt.day.toString().padLeft(2,'0')} ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}";
   }
 
   Future<void> _loadInitialData() async {
@@ -134,7 +141,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
             : _locationController.text,
         "policeOfficerId": _officerBadgeNumber,
         "status": "Unpaid",
-        "date": DateTime.now().toIso8601String(),
+        "date": _selectedDate.toIso8601String(),
       };
 
       await FineService().issueFine(fineData);
@@ -269,6 +276,22 @@ class _NewFineScreenState extends State<NewFineScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 15),
+              
+              TextFormField(
+                controller: _dateController,
+                readOnly: true, // User cannot edit
+                // onTap: _pickDateTime, // Removed: Picker disabled
+                decoration: const InputDecoration(
+                  labelText: "Date & Time (Auto)",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.calendar_today, color: Colors.grey),
+                  // suffixIcon: Icon(Icons.lock, size: 16, color: Colors.grey), // Optional Lock Icon
+                  filled: true,
+                  fillColor: Colors.black12 // Greyed out slightly
+                ),
+              ),
+              
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
