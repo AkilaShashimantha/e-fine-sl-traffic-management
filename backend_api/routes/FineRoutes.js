@@ -27,3 +27,5 @@ router.get('/history', getFineHistory);
 router.get('/pending', getDriverPendingFines);
 
 module.exports = router;
+
+//update the route name
