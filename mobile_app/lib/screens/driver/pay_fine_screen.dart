@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
 
 class PayFineScreen extends StatefulWidget {
@@ -12,9 +14,10 @@ class PayFineScreen extends StatefulWidget {
 
 class _PayFineScreenState extends State<PayFineScreen> {
   
-  // PayHere Sandbox Credentials (REPLACE THESE)
-  final String _merchantId = "1211149"; // Replace with your Merchant ID
-  final String _merchantSecret = "4c10000.........."; // Replace with your Secret
+  // PayHere Sandbox Credentials
+  final String _merchantId = "1232005"; 
+  // Secret is now handled in Backend via Hash
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,18 +109,30 @@ class _PayFineScreenState extends State<PayFineScreen> {
     );
   }
 
-  void _startPayHerePayment(double amount, String item, String orderId) {
+  Future<void> _startPayHerePayment(double amount, String item, String orderId) async {
     
+    // 1. Fetch Hash from Backend
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Initializing Secure Payment...")));
+    
+    String? hash = await _getPayHereHash(orderId, amount);
+
+    if (hash == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Security Error: Could not generate hash."), backgroundColor: Colors.red));
+      return;
+    }
+
+    // 2. Start Payment
     Map paymentObject = {
-      "sandbox": true,                 // true if using Sandbox
-      "merchant_id": _merchantId,      // Your Merchant ID
-      "merchant_secret": _merchantSecret, // Your Merchant Secret
-      "notify_url": "https://ent13zfov681.x.pipedream.net/", // Backend Notify URL
-      "order_id": orderId,             // Unique Order ID
-      "items": item,                   // Item Title
-      "amount": amount.toStringAsFixed(2), // Amount
-      "currency": "LKR",               
-      "first_name": "Saman",           // (Optional) Dynamic User Data
+      "sandbox": true,                 
+      "merchant_id": _merchantId,      
+      // "merchant_secret": NO LONGER NEEDED HERE
+      "notify_url": "https://e-fine-sl-traffic-management-1.onrender.com/api/fines/payment_notify", 
+      "order_id": orderId,             
+      "items": item,                   
+      "amount": amount.toStringAsFixed(2), 
+      "currency": "LKR",
+      "hash": hash, // <-- The Secure Hash from Backend               
+      "first_name": "Saman",           
       "last_name": "Perera",
       "email": "samanp@gmail.com",
       "phone": "0771234567",
@@ -131,15 +146,23 @@ class _PayFineScreenState extends State<PayFineScreen> {
       "custom_2": ""
     };
 
+    print("---------------- PAYHERE DEBUG ----------------");
+    print("Merchant ID: $_merchantId");
+    print("Order ID: $orderId");
+    print("Hash: $hash");
+    print("-----------------------------------------------");
+
     PayHere.startPayment(
       paymentObject, 
       (paymentId) {
+        print("PayHere Success: $paymentId");
         // Success
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment Successful!"), backgroundColor: Colors.green));
         // TODO: Call Backend to update Fine Status to 'Paid'
         Navigator.pop(context);
       }, 
       (error) {
+        print("PayHere Error: $error");
         // Error
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment Failed: $error"), backgroundColor: Colors.red));
       }, 
@@ -148,5 +171,33 @@ class _PayFineScreenState extends State<PayFineScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment Dismissed")));
       }
     );
+  }
+
+  Future<String?> _getPayHereHash(String orderId, double amount) async {
+      try {
+
+        final apiUrl = Uri.parse('https://e-fine-sl-traffic-management-1.onrender.com/api/payment/hash');
+
+        final response = await http.post(
+          apiUrl,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            "order_id": orderId,
+            "amount": amount,
+            "currency": "LKR"
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          return data['hash'];
+        } else {
+           print("Hash Error: ${response.body}");
+           return null;
+        }
+      } catch (e) {
+        print("Hash Exception: $e");
+        return null;
+      }
   }
 }
