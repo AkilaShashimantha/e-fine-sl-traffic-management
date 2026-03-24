@@ -17,8 +17,8 @@ class ProfileScreen extends StatelessWidget {
     
     // --- STATUS CHECK ---
     // Backend එකෙන් 'Active' හෝ 'Suspended' කියලා එන්න ඕනේ
-    String status = userData['licenseStatus'] ?? "Active"; 
-    bool isActive = status == "Active";
+    String status = userData['licenseStatus'] ?? "ACTIVE"; 
+    bool isActive = status == "ACTIVE";
 
     return Scaffold(
       appBar: AppBar(
