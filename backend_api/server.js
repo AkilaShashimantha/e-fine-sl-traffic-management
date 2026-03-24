@@ -22,6 +22,7 @@ app.use('/api/stations', require('./routes/stationRoutes'));
 app.use('/api/fines', require('./routes/fineRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes')); // New Payment Route
 app.use('/api/admin', require('./routes/adminRoutes')); // Admin Routes
+app.use('/api/drivers', require('./routes/driverRoutes')); // Driver Demerit Routes
 app.get('/', (req, res) => {
   res.send('API is running successfully!');
 });
@@ -31,3 +32,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
+
+// Start cron jobs
+require('./jobs/resetDemeritPoints');

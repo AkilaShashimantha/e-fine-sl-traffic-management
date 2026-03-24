@@ -204,4 +204,36 @@ class FineService {
       return [];
     }
   }
+
+  // ----------------------------------------------------------------
+  // 5. Get Driver Status (Demerit Points)
+  // ----------------------------------------------------------------
+  Future<Map<String, dynamic>> getDriverStatus() async {
+    try {
+      String? token = await _storage.read(key: 'token');
+      String? licenseNumber = await _storage.read(key: 'licenseNumber');
+
+      if (token == null || licenseNumber == null) {
+        throw Exception("Auth data missing.");
+      }
+
+      final uri = Uri.parse('$baseUrl/drivers/$licenseNumber/status');
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Server Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching driver status: $e');
+    }
+  }
 }

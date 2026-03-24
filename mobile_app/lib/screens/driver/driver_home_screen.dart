@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/screens/driver/profile_screen.dart';
 import 'package:mobile_app/services/auth_service.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_app/services/fine_service.dart';
 import 'dart:async';
@@ -9,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_app/screens/driver/pay_fine_screen.dart';
 import 'package:mobile_app/screens/driver/payment_history_screen.dart';
 import 'package:mobile_app/screens/settings_screen.dart';
+import 'package:mobile_app/widgets/demerit_status_card.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -23,8 +24,31 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   
 
   String driverName = "Loading..."; 
-  int currentPoints = 18; 
-  int maxPoints = 24;
+  int _demeritPoints = 100;
+  String _licenseStatus = 'ACTIVE';
+  DateTime? _suspendedAt;
+  bool _loadingStatus = true;
+
+  Future<void> _loadDriverStatus() async {
+    try {
+      final response = await FineService().getDriverStatus();
+      if (mounted) {
+        setState(() {
+          _demeritPoints = response['demeritPoints'] ?? 100;
+          _licenseStatus = response['licenseStatus'] ?? 'ACTIVE';
+          _suspendedAt = response['suspendedAt'] != null
+              ? DateTime.parse(response['suspendedAt'])
+              : null;
+          _loadingStatus = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingStatus = false);
+      }
+      debugPrint('Failed to load driver status: $e');
+    }
+  }
 
  String _getGreetingKey() {
     var hour = DateTime.now().hour;
@@ -42,6 +66,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     super.initState();
     _loadUserData();
     _loadReadFines();
+    _loadDriverStatus();
     // Initialize without notification
     FineService().getDriverPendingFines().then((fines) {
        if(mounted) {
@@ -118,18 +143,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
 
-  // --- Helpers for Status Colors ---
-  Color _getStatusColor() {
-    if (currentPoints > 20) return Colors.green;
-    if (currentPoints > 10) return Colors.orange;
-    return Colors.red;
-  }
-
-  String _getStatusMessage() {
-    if (currentPoints > 20) return "status_excellent"; 
-    if (currentPoints > 10) return "status_warning";   
-    return "status_risk";                              
-  }
 
   // Helper for Action Grid
   Widget _buildActionCard(IconData icon, String title, Color color, VoidCallback onTap) {
@@ -313,51 +326,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             const SizedBox(height: 20),
 
             // 2. DEMERIT POINTS METER
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withAlpha((0.05 * 255).toInt()), blurRadius: 10, offset: const Offset(0, 5)),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Text("rating_status".tr(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
-                    const SizedBox(height: 20),
-                    CircularPercentIndicator(
-                      radius: 80.0,
-                      lineWidth: 15.0,
-                      animation: true,
-                      percent: currentPoints / maxPoints, 
-                      center: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "$currentPoints / $maxPoints",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: _getStatusColor()),
-                          ),
-                          Text("points".tr(), style: TextStyle(fontSize: 12, color: Colors.grey)),
-                        ],
-                      ),
-                      footer: Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Text(
-                          _getStatusMessage().tr(),
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: _getStatusColor()),
-                        ),
-                      ),
-                      circularStrokeCap: CircularStrokeCap.round,
-                      progressColor: _getStatusColor(),
-                      backgroundColor: Colors.grey[200]!,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _loadingStatus
+                ? const Center(child: CircularProgressIndicator())
+                : DemeritStatusCard(
+                    points: _demeritPoints,
+                    status: _licenseStatus,
+                    suspendedAt: _suspendedAt,
+                  ),
 
             const SizedBox(height: 20),
 

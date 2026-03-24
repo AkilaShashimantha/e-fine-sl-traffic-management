@@ -18,6 +18,13 @@ const offenseSchema = mongoose.Schema(
     sectionOfAct: { // Panatha (Example: 123-A)
       type: String,
       required: false, 
+    },
+    demeritValue: {
+      type: Number,
+      required: true,
+      default: 10,
+      min: 1,
+      max: 100,
     }
   },
   {
