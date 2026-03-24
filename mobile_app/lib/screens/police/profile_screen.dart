@@ -27,18 +27,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String? _profileImageBase64;
   bool _isUploading = false;
-  bool _isLoadingData = true; // දත්ත ලෝඩ් වෙනකම් පෙන්නන්න
+  bool _isLoadingData = true; // Show loading until data is fetched
 
   @override
   void initState() {
     super.initState();
-    _fetchLatestUserData(); // අලුත් ක්‍රමය: කෙලින්ම Server එකෙන් දත්ත ගන්නවා
+    _fetchLatestUserData(); // New method: Fetch data directly from the Server
   }
 
-  // --- අලුත් FUNCTION එක: Server එකෙන් Data ගන්න ---
+  // --- NEW FUNCTION: Fetch Data from Server ---
   Future<void> _fetchLatestUserData() async {
     try {
-      // 1. මුලින්ම Storage එකේ තියෙන මූලික ටික පෙන්නනවා (වේගවත් බවට)
+      // 1. Show basic data from Storage first (for speed)
       String? savedId = await _storage.read(key: 'userId');
       String? savedName = await _storage.read(key: 'name');
 
@@ -49,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
 
-      // 2. Server එකට කෝල් කරලා අලුත්ම විස්තර ගන්නවා
+      // 2. Call the server to get the latest details
       final userData = await _authService.getUserProfile();
 
       if (mounted) {
@@ -62,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Rank / Position
           _position = userData['position'] ?? "Officer";
 
-          // Station (සමහරවිට Object එකක්, සමහරවිට String එකක්)
+          // Station (sometimes an Object, sometimes a String)
           if (userData['policeStation'] is Map) {
             _station = userData['policeStation']['name'] ?? "Unknown Station";
           } else {
@@ -75,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoadingData = false;
         });
 
-        // 3. අලුත් Data ටික Storage එකෙත් Save කරගන්නවා (ඊළඟ පාරට ඕන වෙයි කියලා)
+        // 3. Save the new Data in Storage (for next time)
         await _storage.write(key: 'name', value: _officerName);
         await _storage.write(key: 'badgeNumber', value: _badgeNumber);
         await _storage.write(key: 'position', value: _position);
@@ -159,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: _isLoadingData
           ? const Center(
-              child: CircularProgressIndicator()) // Data එනකම් Loading පෙන්වනවා
+              child: CircularProgressIndicator()) // Show Loading until data arrives
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(

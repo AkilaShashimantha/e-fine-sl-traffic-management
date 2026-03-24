@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../services/api_logger.dart' as http;
 import 'package:mobile_app/services/fine_service.dart';
 import 'dart:convert';
 import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
