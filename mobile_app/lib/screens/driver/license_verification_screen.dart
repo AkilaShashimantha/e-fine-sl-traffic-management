@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../../services/auth_service.dart';
 import 'driver_home_screen.dart';
+import '../../config/app_constants.dart';
 
 class LicenseVerificationScreen extends StatefulWidget {
   final String registeredLicenseNumber;
@@ -202,9 +203,9 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
 
     if (validResults.isNotEmpty) {
       setState(() { extractedClasses = validResults; });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Found ${validResults.length} vehicle classes!"), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Found ${validResults.length} vehicle classes!"), backgroundColor: AppColors.successGreen));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No aligned dates found. Try aligning straight."), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No aligned dates found. Try aligning straight."), backgroundColor: AppColors.warningOrange));
     }
   }
 
@@ -269,7 +270,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppColors.errorRed));
   }
 
   void _showDialog(String title, String msg) {
@@ -277,7 +278,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Text(title, style: const TextStyle(color: Colors.red)),
+        title: Text(title, style: const TextStyle(color: AppColors.errorRed)),
         content: Text(msg),
         actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))],
       ),
@@ -288,7 +289,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Verify License"), backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text("Verify License"), backgroundColor: AppColors.primaryGreenDark, foregroundColor: Colors.white),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -346,7 +347,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(5), color: Colors.grey[200]),
                 child: extractedClasses.isEmpty 
-                  ? const Text("No valid classes found", style: TextStyle(color: Colors.red))
+                  ? const Text("No valid classes found", style: TextStyle(color: AppColors.errorRed))
                   : Wrap(spacing: 8.0, children: extractedClasses.map((item) => Chip(label: Text(item['category']!), backgroundColor: Colors.green[100])).toList()),
               ),
 
@@ -354,7 +355,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: _submitData,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15)),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15)),
                     child: const Text("Confirm & Verify", style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
               
@@ -405,10 +406,10 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
 
   Widget _buildStepCircle(int index, String label) {
     bool isActive = _currentStep >= index;
-    return Column(children: [CircleAvatar(radius: 15, backgroundColor: isActive ? Colors.green : Colors.grey[300], child: Text("${index + 1}", style: TextStyle(color: isActive ? Colors.white : Colors.black))), Text(label, style: const TextStyle(fontSize: 10))]);
+    return Column(children: [CircleAvatar(radius: 15, backgroundColor: isActive ? AppColors.primaryGreen : Colors.grey[300], child: Text("${index + 1}", style: TextStyle(color: isActive ? Colors.white : Colors.black))), Text(label, style: const TextStyle(fontSize: 10))]);
   }
 
   Widget _buildStepLine(int index) {
-    return Expanded(child: Container(height: 2, color: _currentStep > index ? Colors.green : Colors.grey[300]));
+    return Expanded(child: Container(height: 2, color: _currentStep > index ? AppColors.primaryGreen : Colors.grey[300]));
   }
 }

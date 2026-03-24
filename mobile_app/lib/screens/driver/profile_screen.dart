@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:qr_flutter/qr_flutter.dart'; 
 import 'dart:convert'; // JSON encode කරන්න
+import '../../config/app_constants.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Map<String, dynamic> userData;
@@ -23,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("my_profile".tr()), 
-        backgroundColor: Colors.green[700],
+        backgroundColor: AppColors.primaryGreenDark,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -92,13 +93,13 @@ class ProfileScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                     decoration: BoxDecoration(
                       // Active නම් සුදු, Suspended නම් රතු
-                      color: isActive ? Colors.white : Colors.red,
+                      color: isActive ? Colors.white : AppColors.errorRed,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       isActive ? "active_license".tr(): "suspended_license".tr(),
                       style: TextStyle(
-                        color: isActive ? Colors.green[800] : Colors.white,
+                        color: isActive ? AppColors.successGreen : Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12
                       ),
@@ -160,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
                         // Status Icon
                         Icon(
                           isActive ? Icons.check_circle : Icons.block, 
-                          color: isActive ? Colors.green : Colors.red, 
+                          color: isActive ? AppColors.successGreen : AppColors.errorRed, 
                           size: 30
                         ),
                       ],
@@ -182,7 +183,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     
                     vehicleClasses.isEmpty 
-                      ? Text("no_classes".tr(), style: const TextStyle(color: Colors.red))
+                      ? Text("no_classes".tr(), style: const TextStyle(color: AppColors.errorRed))
                       : Wrap(
                           spacing: 10,
                           runSpacing: 10,
@@ -308,7 +309,7 @@ class ProfileScreen extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold, 
             fontSize: 15,
-            color: isExpiry ? Colors.redAccent : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+            color: isExpiry ? AppColors.errorRed : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
           ),
         ),
       ],

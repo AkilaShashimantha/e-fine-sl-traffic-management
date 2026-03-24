@@ -1,0 +1,160 @@
+// ─────────────────────────────────────────────────────
+// lib/config/app_constants.dart
+// Central constants file for e-Fine SL Flutter app
+// ─────────────────────────────────────────────────────
+
+import 'package:flutter/material.dart';
+
+// ── APP INFO ──────────────────────────────────────────
+class AppInfo {
+  static const String appName       = 'e-Fine SL';
+  static const String appVersion    = '1.0.0';
+  static const String appTagline    = 'Sri Lanka Traffic Fine Management';
+}
+
+// ── API ───────────────────────────────────────────────
+class ApiConstants {
+  static const String baseUrl       = 'https://e-fine-sl-traffic-management-1.onrender.com/api';
+  static const int    connectTimeout = 30000;
+  static const int    receiveTimeout = 30000;
+  static const String authPrefix    = 'Bearer';
+  static const String payHereMerchantId = '1225301';
+  static const String payHereNotifyUrl  = 'https://sandbox.payhere.lk/pay/checkout';
+}
+
+// ── USER ROLES ────────────────────────────────────────
+class UserRoles {
+  static const String admin  = 'admin';
+  static const String officer = 'officer'; 
+  static const String driver = 'driver';
+}
+
+// ── LICENSE/FINE STATUS ────────────────────────────────────
+class AppStatus {
+  static const String active    = 'ACTIVE';
+  static const String suspended = 'SUSPENDED';
+  static const String paid      = 'Paid';
+  static const String unpaid    = 'Unpaid';
+  static const String pending   = 'Pending';
+  static const String currency  = 'LKR';
+}
+
+// ── DEMERIT POINTS ────────────────────────────────────
+class DemeritConstants {
+  static const int    defaultPoints         = 100;
+  static const int    suspensionThreshold   = 0;
+  static const int    monthlyRestorePoints  = 50;
+  static const int    minorOffensePoints    = 10;
+  static const int    moderateOffensePoints = 20;
+  static const int    seriousOffensePoints  = 40;
+  static const int    criticalOffensePoints = 100;
+}
+
+// ── APP COLORS ────────────────────────────────────────
+class AppColors {
+  // Primary Settings
+  static const Color primaryBlue    = Color(0xFF0D47A1);  // Police
+  static const Color primaryBlueLight = Color(0xFF1565C0);
+  static const Color primaryGreen   = Color(0xFF4CAF50);  // Driver primary
+  static const Color primaryGreenDark = Color(0xFF388E3C);
+  static const Color primaryGreenLight = Color(0xFFC8E6C9);
+
+  // Status colors
+  static const Color activeGreen    = Color(0xFF4CAF50);
+  static const Color suspendedRed   = Color(0xFFF44336);
+  static const Color warningOrange  = Color(0xFFFF9800);
+  static const Color dangerRed      = Color(0xFFF44336);
+
+  // Demerit level colors
+  static const Color goodStanding   = Color(0xFF4CAF50); // 70–100
+  static const Color warningLevel   = Color(0xFFFF9800); // 40–69
+  static const Color dangerLevel    = Color(0xFFF44336); // 0–39
+
+  // UI colors
+  static const Color background     = Color(0xFFF5F5F5);
+  static const Color cardWhite      = Color(0xFFFFFFFF);
+  static const Color textPrimary    = Color(0xFF212121);
+  static const Color textSecondary  = Color(0xFF757575);
+  static const Color textHint       = Color(0xFFBDBDBD);
+  static const Color divider        = Color(0xFFEEEEEE);
+
+  // Alert colors
+  static const Color errorRed       = Color(0xFFD32F2F);
+  static const Color successGreen   = Color(0xFF388E3C);
+  static const Color infoBlueBg     = Color(0xFFE3F2FD);
+  static const Color warningBg      = Color(0xFFFFF8E1);
+  static const Color errorBg        = Color(0xFFFFEBEE);
+  static const Color successBg      = Color(0xFFE8F5E9);
+}
+
+// ── TEXT STYLES / SIZES ───────────────────────────────
+class AppTextSize {
+  static const double heading1   = 24.0;
+  static const double heading2   = 20.0;
+  static const double heading3   = 18.0;
+  static const double bodyLarge  = 16.0;
+  static const double bodyMedium = 14.0;
+  static const double bodySmall  = 12.0;
+  static const double caption    = 10.0;
+}
+
+// ── SPACING & SIZING ──────────────────────────────────
+class AppSpacing {
+  static const double xs   = 4.0;
+  static const double sm   = 8.0;
+  static const double md   = 16.0;
+  static const double lg   = 24.0;
+  static const double xl   = 32.0;
+  static const double xxl  = 48.0;
+}
+
+// ── BORDER RADIUS ─────────────────────────────────────
+class AppRadius {
+  static const double small  = 8.0;
+  static const double medium = 12.0;
+  static const double large  = 16.0;
+  static const double circle = 100.0;
+}
+
+// ── SHARED PREFERENCE KEYS ────────────────────────────
+class PrefKeys {
+  static const String authToken    = 'token';
+  static const String userRole     = 'role';
+  static const String userId       = 'userId';
+  static const String userName     = 'name';
+  static const String licenseNum   = 'licenseNumber';
+  static const String badgeNumber  = 'badgeNumber';
+  static const String position     = 'position';
+  static const String profileImage = 'serverProfileImage';
+  static const String user         = 'user';
+}
+
+// ── EXTERNAL MEDIA/ASSETS ───────────────────────────────────────
+class AppAssets {
+  static const String defaultProfileImage = 'https://cdn-icons-png.flaticon.com/512/206/206853.png';
+  static const String logoCircle          = 'assets/icons/app_icon/app_logo_circle.png';
+  static const String payhereLogo         = 'assets/images/payhere.png';
+}
+
+// ── LOCALIZATION ──────────────────────────────────────
+class AppLocale {
+  static const String defaultLang  = 'en';
+  static const String sinhala      = 'si';
+  static const List<String> supported = ['en', 'si'];
+}
+
+// ── DEMERIT LEVEL HELPER ──────────────────────────────
+class DemeritLevel {
+  static String getLabel(int points) {
+    if (points >= 70) return 'demerit_good';
+    if (points >= 40) return 'demerit_warning';
+    if (points >= 1)  return 'demerit_danger';
+    return 'demerit_suspended';
+  }
+
+  static Color getColor(int points) {
+    if (points >= 70) return AppColors.goodStanding;
+    if (points >= 40) return AppColors.warningLevel;
+    return AppColors.dangerLevel;
+  }
+}

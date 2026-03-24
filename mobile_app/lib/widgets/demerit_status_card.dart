@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../config/app_constants.dart';
 
 // ---------------------------------------------------------------------------
 // CustomPainter — 300° gauge arc (speedometer style)
@@ -114,18 +115,12 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
   }
 
   // -- Color helper based on points --
-  Color _getStatusColor(int pts) {
-    if (pts >= 70) return const Color(0xFF4CAF50); // Green
-    if (pts >= 40) return const Color(0xFFFF9800); // Orange
-    return const Color(0xFFF44336);                 // Red
-  }
+  Color _getStatusColor(int pts) => DemeritLevel.getColor(pts);
 
   // -- Localized label helper based on points --
   String _getStatusLabel(int pts) {
     if (pts <= 0) return 'demerit_suspended'.tr();
-    if (pts >= 70) return 'demerit_good'.tr();
-    if (pts >= 40) return 'demerit_warning'.tr();
-    return 'demerit_danger'.tr();
+    return DemeritLevel.getLabel(pts).tr();
   }
 
   String _formatDate(DateTime d) => '${d.day}/${d.month}/${d.year}';
@@ -133,7 +128,7 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
   @override
   Widget build(BuildContext context) {
     final color = _getStatusColor(widget.points);
-    final label = widget.status == 'SUSPENDED'
+    final label = widget.status == AppStatus.suspended
         ? 'demerit_suspended'.tr()
         : _getStatusLabel(widget.points);
 
@@ -224,7 +219,7 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
             ),
 
             // ── Suspended date ─────────────────────────────
-            if (widget.status == 'SUSPENDED' &&
+            if (widget.status == AppStatus.suspended &&
                 widget.suspendedAt != null) ...[
               const SizedBox(height: 4),
               Text(
@@ -234,22 +229,22 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
             ],
 
             // ── Reinstatement info banner ───────────────────
-            if (widget.status == 'SUSPENDED') ...[
+            if (widget.status == AppStatus.suspended) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade100,
+                  color: AppColors.errorBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, color: Colors.red, size: 16),
+                    const Icon(Icons.info_outline, color: AppColors.errorRed, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'demerit_reinstate_info'.tr(),
-                        style: const TextStyle(fontSize: 12, color: Colors.red),
+                        style: const TextStyle(fontSize: 12, color: AppColors.errorRed),
                       ),
                     ),
                   ],

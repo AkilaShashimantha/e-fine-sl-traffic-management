@@ -1,0 +1,4 @@
+﻿Analyzing mobile_app...                                         
+
+warning - The '!' will have no effect because the receiver can't be null - lib\main.dart:45:117 - unnecessary_non_null_assertion
+

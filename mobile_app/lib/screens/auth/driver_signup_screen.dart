@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
+import '../../config/app_constants.dart';
 
 class DriverSignupScreen extends StatefulWidget {
   const DriverSignupScreen({super.key});
@@ -55,7 +56,7 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
  
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AppColors.errorRed),
     );
   }
 
@@ -114,7 +115,7 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration Successful! Please Login."), backgroundColor: Colors.green),
+          const SnackBar(content: Text("Registration Successful! Please Login."), backgroundColor: AppColors.successGreen),
         );
     
         Navigator.of(context).pushAndRemoveUntil(
@@ -134,14 +135,14 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Driver Registration"),
-        backgroundColor: Colors.green[700], 
+        backgroundColor: AppColors.primaryGreenDark, 
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Icon(Icons.directions_car, size: 60, color: Colors.green),
+            const Icon(Icons.directions_car, size: 60, color: AppColors.primaryGreen),
             const SizedBox(height: 10),
             const Text(
               "Create Driver Account",
@@ -226,7 +227,7 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _registerDriver,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
+                  backgroundColor: AppColors.primaryGreenDark,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),

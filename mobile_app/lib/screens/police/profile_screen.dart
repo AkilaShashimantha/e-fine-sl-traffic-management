@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import '../../config/app_constants.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -39,8 +40,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchLatestUserData() async {
     try {
       // 1. Show basic data from Storage first (for speed)
-      String? savedId = await _storage.read(key: 'userId');
-      String? savedName = await _storage.read(key: 'name');
+      String? savedId = await _storage.read(key: PrefKeys.userId);
+      String? savedName = await _storage.read(key: PrefKeys.userName);
 
       if (mounted) {
         setState(() {
@@ -76,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
 
         // 3. Save the new Data in Storage (for next time)
-        await _storage.write(key: 'name', value: _officerName);
+        await _storage.write(key: PrefKeys.userName, value: _officerName);
         await _storage.write(key: 'badgeNumber', value: _badgeNumber);
         await _storage.write(key: 'position', value: _position);
       }
@@ -114,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Profile picture updated!'),
-                backgroundColor: Colors.green),
+                backgroundColor: AppColors.successGreen),
           );
         }
       } catch (e) {
@@ -123,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('Failed to update image: $e'),
-                backgroundColor: Colors.red),
+                backgroundColor: AppColors.errorRed),
           );
         }
       }
@@ -154,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("My Profile", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.primaryBlue,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoadingData
@@ -172,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                                color: const Color(0xFF0D47A1), width: 3),
+                                color: AppColors.primaryBlue, width: 3),
                           ),
                           child: CircleAvatar(
                             radius: 70,
@@ -215,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0D47A1))),
+                          color: AppColors.primaryBlue)),
                   Text(_position.toUpperCase(),
                       style: TextStyle(
                           fontSize: 14,
@@ -253,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: const Text("Logout",
                           style: TextStyle(fontSize: 16, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
+                          backgroundColor: AppColors.errorRed,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
                     ),
@@ -284,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               decoration: BoxDecoration(
                   color: Colors.blue[50],
                   borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: const Color(0xFF0D47A1))),
+              child: Icon(icon, color: AppColors.primaryBlue)),
           const SizedBox(width: 20),
           Expanded(
               child: Column(

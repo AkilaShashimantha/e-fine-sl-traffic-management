@@ -1,0 +1,66 @@
+﻿Analyzing mobile_app...                                         
+
+warning - The '!' will have no effect because the receiver can't be null - lib\main.dart:45:117 - unnecessary_non_null_assertion
+warning - The '!' will have no effect because the receiver can't be null - lib\main.dart:66:51 - unnecessary_non_null_assertion
+  error - The operator '[]' isn't defined for the type 'Color' - lib\screens\auth\driver_signup_screen.dart:138:48 - undefined_operator
+  error - The getter 'userName' isn't defined for the type 'PrefKeys' - lib\screens\driver\driver_home_screen.dart:96:54 - undefined_getter
+  error - Expected to find ']' - lib\screens\police\new_fine.dart:195:41 - expected_token
+  error - Too many positional arguments: 0 expected, but 6 found - lib\screens\police\new_fine.dart:196:15 - extra_positional_arguments_could_be_named
+  error - Expected an identifier - lib\screens\police\new_fine.dart:311:13 - missing_identifier
+  error - Expected to find ')' - lib\screens\police\new_fine.dart:311:13 - expected_token
+  error - Expected to find ';' - lib\screens\police\new_fine.dart:313:9 - expected_token
+warning - Dead code - lib\screens\police\new_fine.dart:313:10 - dead_code
+  error - Expected an identifier - lib\screens\police\new_fine.dart:313:10 - missing_identifier
+  error - Expected to find ';' - lib\screens\police\new_fine.dart:313:10 - expected_token
+  error - Unexpected text ';' - lib\screens\police\new_fine.dart:313:10 - unexpected_token
+  error - Expected an identifier - lib\screens\police\new_fine.dart:314:7 - missing_identifier
+  error - Expected to find ';' - lib\screens\police\new_fine.dart:314:7 - expected_token
+  error - Unexpected text ';' - lib\screens\police\new_fine.dart:314:7 - unexpected_token
+  error - Expected an identifier - lib\screens\police\new_fine.dart:314:8 - missing_identifier
+  error - Expected to find ';' - lib\screens\police\new_fine.dart:314:8 - expected_token
+  error - Unexpected text ';' - lib\screens\police\new_fine.dart:314:8 - unexpected_token
+  error - Expected an identifier - lib\screens\police\new_fine.dart:315:5 - missing_identifier
+  error - Unexpected text ';' - lib\screens\police\new_fine.dart:315:5 - unexpected_token
+   info - Unnecessary empty statement - lib\screens\police\new_fine.dart:315:6 - empty_statements
+  error - The getter 'userName' isn't defined for the type 'PrefKeys' - lib\screens\police\police_home_screen.dart:36:60 - undefined_getter
+  error - The getter 'userName' isn't defined for the type 'PrefKeys' - lib\screens\police\profile_screen.dart:44:61 - undefined_getter
+  error - The getter 'userName' isn't defined for the type 'PrefKeys' - lib\screens\police\profile_screen.dart:80:44 - undefined_getter
+  error - Expected to find ']' - lib\screens\police\profile_screen.dart:219:57 - expected_token
+  error - Expected an identifier - lib\screens\police\profile_screen.dart:262:17 - missing_identifier
+  error - Expected to find ')' - lib\screens\police\profile_screen.dart:262:17 - expected_token
+  error - Expected to find ';' - lib\screens\police\profile_screen.dart:264:13 - expected_token
+warning - Dead code - lib\screens\police\profile_screen.dart:264:14 - dead_code
+  error - Expected an identifier - lib\screens\police\profile_screen.dart:264:14 - missing_identifier
+  error - Expected to find ';' - lib\screens\police\profile_screen.dart:264:14 - expected_token
+  error - Unexpected text ';' - lib\screens\police\profile_screen.dart:264:14 - unexpected_token
+  error - Expected an identifier - lib\screens\police\profile_screen.dart:265:5 - missing_identifier
+  error - Unexpected text ';' - lib\screens\police\profile_screen.dart:265:5 - unexpected_token
+   info - Unnecessary empty statement - lib\screens\police\profile_screen.dart:265:6 - empty_statements
+warning - The declaration '_logout' isn't referenced - lib\screens\settings_screen.dart:20:16 - unused_element
+  error - The method '_buildSectionHeader' isn't defined for the type '_SettingsScreenState' - lib\screens\settings_screen.dart:46:11 - undefined_method
+  error - The method '_buildListTile' isn't defined for the type '_SettingsScreenState' - lib\screens\settings_screen.dart:47:11 - undefined_method
+  error - Undefined name '_navigateToProfile' - lib\screens\settings_screen.dart:51:20 - undefined_identifier
+  error - The method '_buildSectionHeader' isn't defined for the type '_SettingsScreenState' - lib\screens\settings_screen.dart:57:11 - undefined_method
+  error - The method '_buildListTile' isn't defined for the type '_SettingsScreenState' - lib\screens\settings_screen.dart:70:11 - undefined_method
+  error - Local variable '_showLanguageDialog' can't be referenced before it is declared - lib\screens\settings_screen.dart:74:20 - referenced_before_declaration
+  error - The method '_buildSectionHeader' isn't defined for the type '_SettingsScreenState' - lib\screens\settings_screen.dart:80:11 - undefined_method
+  error - The method '_buildListTile' isn't defined for the type '_SettingsScreenState' - lib\screens\settings_screen.dart:90:11 - undefined_method
+  error - Function expressions can't be named - lib\screens\settings_screen.dart:106:10 - named_function_expression
+  error - The element type 'Padding Function(String)' can't be assigned to the list type 'Widget' - lib\screens\settings_screen.dart:106:29 - list_element_type_not_assignable
+  error - Expected to find ',' - lib\screens\settings_screen.dart:113:3 - expected_token
+  error - Function expressions can't be named - lib\screens\settings_screen.dart:113:10 - named_function_expression
+  error - The element type 'ListTile Function({required IconData icon, required VoidCallback onTap, String? subtitle, required String title})' can't be assigned to the list type 'Widget' - lib\screens\settings_screen.dart:113:24 - list_element_type_not_assignable
+  error - Expected to find ',' - lib\screens\settings_screen.dart:131:3 - expected_token
+  error - Function expressions can't be named - lib\screens\settings_screen.dart:131:16 - named_function_expression
+  error - The element type 'Future<Null> Function()' can't be assigned to the list type 'Widget' - lib\screens\settings_screen.dart:131:34 - list_element_type_not_assignable
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\settings_screen.dart:137:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\settings_screen.dart:138:22 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\settings_screen.dart:141:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\settings_screen.dart:142:28 - use_build_context_synchronously
+  error - Expected to find ';' - lib\screens\settings_screen.dart:144:3 - expected_token
+warning - Dead code - lib\screens\settings_screen.dart:146:3 - dead_code
+  error - Expected to find ')' - lib\screens\settings_screen.dart:146:3 - expected_token
+  error - Expected to find ']' - lib\screens\settings_screen.dart:146:3 - expected_token
+   info - The local variable '_showLanguageDialog' starts with an underscore - lib\screens\settings_screen.dart:146:8 - no_leading_underscores_for_local_identifiers
+  error - Expected to find '}' - lib\screens\settings_screen.dart:177:1 - expected_token
+

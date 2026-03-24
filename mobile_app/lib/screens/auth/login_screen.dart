@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../driver/driver_home_screen.dart';
 import '../police/police_home_screen.dart';
 import '../driver/license_verification_screen.dart';
+import '../../config/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AppColors.errorRed),
     );
   }
 
@@ -47,11 +48,11 @@ Future<void> _handleLogin() async {
 
       if (!mounted) return;
 
-      String role = userData['role'] ?? 'driver';
+      String role = userData['role'] ?? UserRoles.driver;
 
       // --- Logic 
       
-      if (role == 'officer' || role == 'admin') {
+      if (role == UserRoles.officer || role == UserRoles.admin) {
         Navigator.pushReplacement(
           context, 
           MaterialPageRoute(builder: (context) => const PoliceHomeScreen()),
@@ -174,7 +175,7 @@ Future<void> _handleLogin() async {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: AppColors.primaryGreen,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -212,7 +213,7 @@ Future<void> _handleLogin() async {
                       "Register Here",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue, // Changed to Blue to indicate link
+                        color: AppColors.primaryBlueLight, // Changed to Blue to indicate link
                       ),
                     ),
                   ),

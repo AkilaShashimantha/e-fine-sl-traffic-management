@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/fine_service.dart';
+import '../../config/app_constants.dart';
 
 class FineHistoryScreen extends StatefulWidget {
   const FineHistoryScreen({super.key});
@@ -62,7 +63,7 @@ class _FineHistoryScreenState extends State<FineHistoryScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("Fine History"),
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -80,7 +81,7 @@ class _FineHistoryScreenState extends State<FineHistoryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                        const Icon(Icons.error_outline, color: AppColors.errorRed, size: 60),
                         const SizedBox(height: 10),
                         const Text("Failed to Load History", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 5),
@@ -127,7 +128,7 @@ class _FineHistoryScreenState extends State<FineHistoryScreen> {
                                     Expanded(
                                       child: Text(
                                         offense,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0D47A1)),
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryBlue),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -185,7 +186,7 @@ class _FineHistoryScreenState extends State<FineHistoryScreen> {
                                   alignment: Alignment.centerRight,
                                   child: Text(
                                     "LKR $amount",
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.redAccent),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.errorRed),
                                   ),
                                 )
                               ],

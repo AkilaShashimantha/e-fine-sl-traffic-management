@@ -3,6 +3,7 @@ import '../../services/api_logger.dart' as http;
 import 'package:mobile_app/services/fine_service.dart';
 import 'dart:convert';
 import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
+import '../../config/app_constants.dart';
 
 class PayFineScreen extends StatefulWidget {
   final Map<String, dynamic> fine;
@@ -29,7 +30,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Pay Fine", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green[700],
+        backgroundColor: AppColors.primaryGreenDark,
         centerTitle: true,
       ),
       body: Padding(
@@ -51,7 +52,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
               ),
               child: Column(
                 children: [
-                   const Icon(Icons.receipt_long, size: 50, color: Colors.green),
+                   const Icon(Icons.receipt_long, size: 50, color: AppColors.primaryGreen),
                    const SizedBox(height: 10),
                    Text(offense, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                    const SizedBox(height: 20),
@@ -68,7 +69,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: [
                        const Text("Total Amount", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                       Text("LKR ${amount.toStringAsFixed(2)}", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
+                       Text("LKR ${amount.toStringAsFixed(2)}", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
                      ],
                    )
                 ],
@@ -85,7 +86,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
                 icon: const Icon(Icons.payment, color: Colors.white), 
                 label: const Text("PAY NOW (PayHere)", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[800],
+                  backgroundColor: AppColors.primaryGreen,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -120,7 +121,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
     if (!mounted) return; // Check mounted
 
     if (hash == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Security Error: Could not generate hash."), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Security Error: Could not generate hash."), backgroundColor: AppColors.errorRed));
       return;
     }
 
@@ -129,7 +130,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
       "sandbox": true,                 
       "merchant_id": _merchantId,      
       // "merchant_secret": NO LONGER NEEDED HERE
-      "notify_url": "https://e-fine-sl-traffic-management-1.onrender.com/api/fines/payment_notify", 
+      "notify_url": "${ApiConstants.baseUrl}/fines/payment_notify", 
       "order_id": orderId,             
       "items": item,                   
       "amount": amount.toStringAsFixed(2), 
@@ -168,17 +169,17 @@ class _PayFineScreenState extends State<PayFineScreen> {
         if (!mounted) return; // Check mounted
 
         if (success) {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fine Paid Successfully!"), backgroundColor: Colors.green));
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fine Paid Successfully!"), backgroundColor: AppColors.successGreen));
            // Pop with Result TRUE to refresh previous screen
            Navigator.pop(context, true); 
         } else {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment noted, but status update failed. Please contact support."), backgroundColor: Colors.orange));
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment noted, but status update failed. Please contact support."), backgroundColor: AppColors.warningOrange));
         }
       }, 
       (error) {
         debugPrint("PayHere Error: $error");
         // Error
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment Failed: $error"), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment Failed: $error"), backgroundColor: AppColors.errorRed));
       }, 
       () {
         // Dismissed
@@ -190,7 +191,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
   Future<String?> _getPayHereHash(String orderId, double amount) async {
       try {
 
-        final apiUrl = Uri.parse('https://e-fine-sl-traffic-management-1.onrender.com/api/payment/hash');
+        final apiUrl = Uri.parse('${ApiConstants.baseUrl}/payment/hash');
 
         final response = await http.post(
           apiUrl,
