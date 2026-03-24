@@ -7,7 +7,7 @@ const Driver = require('../models/driverModel');
 const Police = require('../models/policeModel');
 const IssuedFine = require('../models/issuedFineModel');
 const Offense = require('../models/offenseModel');
-const nodemailer = require('nodemailer');
+const { sendLicenseStatusEmail } = require('../services/emailService');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -458,32 +458,11 @@ const suspendDriver = async (req, res) => {
         driver.suspendedAt = new Date();
         await driver.save();
 
-        // Send email notification (optional)
+        // Send email notification
         try {
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: driver.email,
-                subject: 'e-Fine SL - License Suspension Notice',
-                html: `
-          <h2>License Suspension Notice</h2>
-          <p>Dear ${driver.name},</p>
-          <p>Your driving license (${driver.licenseNumber}) has been suspended.</p>
-          <p>Reason: ${req.body.reason || 'Multiple traffic violations'}</p>
-          <p>Please contact the nearest police station for more information.</p>
-          <p><strong>e-Fine SL</strong></p>
-        `
-            });
+            await sendLicenseStatusEmail(driver, 'SUSPENDED');
         } catch (emailError) {
             console.error('Email send error:', emailError);
-            // Continue even if email fails
         }
 
         res.json({
@@ -525,28 +504,9 @@ const activateDriver = async (req, res) => {
         driver.suspendedAt = null;
         await driver.save();
 
-        // Send email notification (optional)
+        // Send email notification
         try {
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: driver.email,
-                subject: 'e-Fine SL - License Activation Notice',
-                html: `
-          <h2>License Activation Notice</h2>
-          <p>Dear ${driver.name},</p>
-          <p>Your driving license (${driver.licenseNumber}) has been reactivated.</p>
-          <p>You can now use your license normally.</p>
-          <p><strong>e-Fine SL</strong></p>
-        `
-            });
+            await sendLicenseStatusEmail(driver, 'ACTIVE');
         } catch (emailError) {
             console.error('Email send error:', emailError);
         }
