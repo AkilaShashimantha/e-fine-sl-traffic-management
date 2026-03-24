@@ -1,4 +1,4 @@
-import 'dart:convert'; // JSON decode සඳහා
+import 'dart:convert'; // For JSON decode
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../services/auth_service.dart';
@@ -6,7 +6,7 @@ import '../../services/auth_service.dart';
 import 'new_fine.dart';
 import 'fine_history_screen.dart';
 import 'profile_screen.dart';
-import 'qr_scanner_screen.dart'; // [NEW] QR Scanner එක Import කළා
+import 'qr_scanner_screen.dart'; // [NEW] Imported QR Scanner
 
 class PoliceHomeScreen extends StatefulWidget {
   const PoliceHomeScreen({super.key});
@@ -30,7 +30,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
     _loadUserData();
   }
 
-  // --- දත්ත ලබාගැනීමේ කොටස ---
+  // --- Data Fetching Section ---
   Future<void> _loadUserData() async {
     String? storedName = await _storage.read(key: 'name');
     String? storedBadge = await _storage.read(key: 'badgeNumber');
@@ -69,20 +69,20 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
 
   // --- [NEW] QR Scan Logic ---
   Future<void> _handleQRScan() async {
-    // 1. Scanner Screen එකට යනවා
+    // 1. Navigate to Scanner Screen
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const QRScannerScreen()),
     );
 
-    // 2. දත්ත ලැබුනොත් (Scan වුනොත්)
+    // 2. If data is received (Scanned successfully)
     if (result != null && mounted) {
       try {
-        // දත්ත JSON එකක් විදියට Decode කරගන්නවා
+        // Decode data as JSON
         Map<String, dynamic> data = jsonDecode(result);
 
         if (data['type'] == 'driver_identity') {
-          // Driver කෙනෙක් නම් විස්තර පෙන්නනවා
+          // If it's a Driver, show details
           _showDriverDetailsDialog(data);
         } else {
           _showErrorDialog("Invalid QR Code: This is not a driver license.");
@@ -93,8 +93,8 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
     }
   }
 
-  // --- [NEW] Driver විස්තර පෙන්වන Dialog එක ---
-// police_home_screen.dart එකේ මේ කොටස හොයාගෙන වෙනස් කරන්න
+  // --- [NEW] Driver Details Dialog ---
+// Find and modify this section in police_home_screen.dart
 
   void _showDriverDetailsDialog(Map<String, dynamic> data) {
     showDialog(
@@ -124,17 +124,17 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
             child: const Text("Close"),
           ),
           ElevatedButton(
-            // --- වෙනස් කළ කොටස (UPDATED PART) ---
+            // --- UPDATED PART ---
             onPressed: () {
-              Navigator.pop(ctx); // 1. Dialog එක වහනවා
+              Navigator.pop(ctx); // 1. Close the Dialog
 
-              // 2. New Fine Screen එකට License Number එක යවනවා
+              // 2. Send License Number to New Fine Screen
               Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => NewFineScreen(
                           scannedLicenseNumber:
-                              data['license'] // මෙතනින් තමයි Data එක යවන්නේ
+                              data['license'] // Sending data from here
                           )));
             },
             // -------------------------------------
@@ -169,6 +169,10 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
     );
   }
   // --- END OF NEW LOGIC ---
+
+  Future<void> _handleRefresh() async {
+    await _loadUserData();
+  }
 
   ImageProvider _getProfileImage() {
     if (profileImageString != null && profileImageString!.isNotEmpty) {
@@ -205,7 +209,9 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
         ],
       ),
       drawer: const Drawer(),
-      body: SingleChildScrollView(
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -306,7 +312,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                           title: "Check License",
                           icon: Icons.qr_code_scanner,
                           color: Colors.blue,
-                          onTap: _handleQRScan // මෙතනින් තමයි Scanner එකට යන්නේ
+                          onTap: _handleQRScan // Navigating to Scanner from here
                           ),
 
                       _buildMenuCard(
@@ -343,6 +349,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

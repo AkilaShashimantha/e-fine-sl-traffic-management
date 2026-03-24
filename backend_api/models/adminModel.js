@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ROLES } = require('../config/constants');
 
 const adminSchema = mongoose.Schema(
     {
@@ -17,7 +18,7 @@ const adminSchema = mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['super_admin', 'admin_officer', 'finance_officer'],
+            enum: [ROLES.SUPER_ADMIN, ROLES.ADMIN_OFFICER, ROLES.FINANCE_OFFICER],
             required: true
         },
         phone: {

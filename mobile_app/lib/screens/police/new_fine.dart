@@ -24,7 +24,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
   late TextEditingController _dateController;
   final DateTime _selectedDate = DateTime.now();
 
-  // Offense Data තියාගන්න Variables
+  // Variables to hold Offense Data
   Map<String, dynamic>? _selectedOffenseData;
   List<Map<String, dynamic>> _offenseList = [];
 
@@ -49,10 +49,10 @@ class _NewFineScreenState extends State<NewFineScreen> {
   Future<void> _loadInitialData() async {
     await _loadOfficerDetails();
     await _getCurrentLocation();
-    await _fetchOffenses(); // Offenses ටික ගන්නවා
+    await _fetchOffenses(); // Get the list of offenses
   }
 
-  // Backend එකෙන් Offenses ලෝඩ් කිරීම
+  // Loading Offenses from the Backend
   Future<void> _fetchOffenses() async {
     try {
       final offenses = await FineService().getOffenses();
@@ -109,14 +109,14 @@ class _NewFineScreenState extends State<NewFineScreen> {
   Future<void> _submitFine() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Offense Select කරලා නැත්නම් Error එකක්
+    // Error validation if no Offense is selected
     if (_selectedOffenseData == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please select an offense")));
       return;
     }
 
-    // Officer Badge Number එක නැත්නම් (Logout වෙලා නම්)
+    // Validation if Officer Badge Number is missing (e.g. Logged out)
     if (_officerBadgeNumber == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Officer ID missing. Please Logout & Login.")));
@@ -130,7 +130,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
         "licenseNumber": _licenseController.text,
         "vehicleNumber": _vehicleController.text,
 
-        // --- වැදගත්ම කොටස: Backend එකට ID එක සහ Name එක යැවීම ---
+        // --- CRITICAL PART: Sending ID and Name to the Backend ---
         "offenseId": _selectedOffenseData!['_id'], // Database ID එක
         "offenseName": _selectedOffenseData!['offenseName'] ??
             _selectedOffenseData!['name'],

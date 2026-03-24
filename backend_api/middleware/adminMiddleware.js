@@ -1,12 +1,13 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/adminModel');
+const { AUTH, HTTP } = require('../config/constants');
 
 // Protect admin routes - verify JWT and ensure user is an admin
 const protectAdmin = async (req, res, next) => {
     let token;
 
     // Check if token exists in authorization header
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req.headers.authorization && req.headers.authorization.startsWith(AUTH.TOKEN_PREFIX)) {
         try {
             // Extract token from "Bearer <token>"
             token = req.headers.authorization.split(' ')[1];
@@ -18,11 +19,11 @@ const protectAdmin = async (req, res, next) => {
             const admin = await Admin.findById(decoded.id).select('-password');
 
             if (!admin) {
-                return res.status(401).json({ message: 'Not authorized, admin not found' });
+                return res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, admin not found' });
             }
 
             if (!admin.isActive) {
-                return res.status(403).json({ message: 'Account is deactivated' });
+                return res.status(HTTP.FORBIDDEN).json({ message: 'Account is deactivated' });
             }
 
             // Attach admin to request object
@@ -31,12 +32,12 @@ const protectAdmin = async (req, res, next) => {
 
         } catch (error) {
             console.error(error);
-            res.status(401).json({ message: 'Not authorized, invalid token' });
+            res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, invalid token' });
         }
     }
 
     if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token provided' });
+        res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, no token provided' });
     }
 };
 
@@ -44,11 +45,11 @@ const protectAdmin = async (req, res, next) => {
 const requireRole = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
-            return res.status(401).json({ message: 'Not authorized' });
+            return res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized' });
         }
 
         if (!roles.includes(req.user.role)) {
-            return res.status(403).json({
+            return res.status(HTTP.FORBIDDEN).json({
                 message: 'Access denied - insufficient permissions',
                 requiredRole: roles,
                 userRole: req.user.role

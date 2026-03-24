@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import 'api_logger.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class FineService {
-  // ඔයාගේ IP එක (වෙනස් වුනොත් මෙතන මාරු කරන්න)
+  // Your IP address (change here if it changes)
   // static const String baseUrl = 'http://192.168.8.114:5000/api';
   static const String baseUrl = 'https://e-fine-sl-traffic-management-1.onrender.com/api';
   final _storage = const FlutterSecureStorage();
 
   // ----------------------------------------------------------------
-  // 1. Offenses List (වෙනසක් නෑ)
+  // 1. Offenses List (No changes)
   // ----------------------------------------------------------------
   Future<List<dynamic>> getOffenses() async {
     try {
@@ -36,7 +36,7 @@ class FineService {
   }
 
   // ----------------------------------------------------------------
-  // 2. Issue Fine (වෙනසක් නෑ)
+  // 2. Issue Fine (No changes)
   // ----------------------------------------------------------------
   Future<bool> issueFine(Map<String, dynamic> fineData) async {
     try {
@@ -66,7 +66,7 @@ class FineService {
   }
 
   // ----------------------------------------------------------------
-  // 3. Get History (මෙන්න හරිම එක)
+  // 3. Get History (Correct endpoint)
   // ----------------------------------------------------------------
   Future<List<Map<String, dynamic>>> getOfficerFineHistory() async {
     try {
@@ -77,15 +77,15 @@ class FineService {
         throw Exception("Auth data missing. Logout and Login.");
       }
 
-      // --- නිවැරදි කළ URL එක ---
-      // ඔයා එවපු Route file එකේ තිබුනේ '/history' නිසා මෙතන '/fines/history' එන්න ඕනේ.
-      // Database එකේ නම 'policeOfficerId' නිසා අපි ඒ නම Query Parameter එකක් විදියට යවනවා.
+      // --- Corrected URL ---
+      // The route file you sent has '/history', so this must be '/fines/history'.
+      // Since the Database parameter name is 'policeOfficerId', we pass it as a Query Parameter.
 
       final uri = Uri.parse('$baseUrl/fines/history').replace(queryParameters: {
         'policeOfficerId': badge,
       });
 
-      // print("Calling URL: $uri"); // Debug කරන්න ලේසි වෙන්න
+      // print("Calling URL: $uri"); // Helpful for debugging
 
       final response = await http.get(
         uri,
@@ -112,18 +112,18 @@ class FineService {
   Future<List<Map<String, dynamic>>> getDriverPendingFines() async {
      try {
       String? token = await _storage.read(key: 'token');
-      // Driver Login වෙනකොට licenseNumber එක save කරගන්න ඕනේ AuthService එකෙන්.
-      // එහෙම නැත්නම් මෙතනදි ගන්න බෑ.
-      // දැනට අපි උපකල්පනය කරමු AuthService එකෙන් ඒක save කරලා තියෙනවා කියලා.
-      // * Hint: Login වෙනකොට licenseNumber එකත් storage එකට දාන්න.
+      // When Driver logs in, licenseNumber must be saved from AuthService.
+      // Otherwise, we cannot extract it here.
+      // For now, let's assume it has been saved by AuthService.
+      // * Hint: Save licenseNumber inside storage during Login.
       
-      // නමුත් දැනට user object එකේ තියෙන විස්තර ගන්න පුලුවන් නම් හොදයි.
-      // අපි AuthService එකේ getUserProfile() වලින් ගන්නත් පුලුවන්. 
-      // නමුත් ලේසිම දේ තමයි Login එකේදි save කරගන්න එක.
+      // However, extracting the profile details from the user object right away is preferred.
+      // We can also fetch it using getUserProfile() from AuthService.
+      // But saving it purely during Login is the easiest approach.
       
-      // අපි මෙතනදි user profile එක අරගෙන බලමු.
+      // Let's attempt to use the user profile here.
       // Final authService definition removed as it was unused.
-      // හොදම දේ තමයි Login එකේදි save කරපු එක ගන්න එක.
+      // The most optimal logic is to retrieve what was saved during Login.
       
       // * Correction in AuthService: Save License Number on Login
       

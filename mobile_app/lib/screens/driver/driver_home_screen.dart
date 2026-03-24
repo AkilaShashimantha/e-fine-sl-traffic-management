@@ -144,6 +144,14 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
 
 
+  Future<void> _handleRefresh() async {
+    setState(() => _loadingStatus = true);
+    await Future.wait([
+      _loadDriverStatus(),
+      _checkPendingFines(),
+    ]);
+  }
+
   // Helper for Action Grid
   Widget _buildActionCard(IconData icon, String title, Color color, VoidCallback onTap) {
     return InkWell(
@@ -241,7 +249,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: SingleChildScrollView(
         child: Column(
           children: [
             // 1. HEADER SECTION
@@ -364,6 +374,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             const SizedBox(height: 30),
           ],
         ),
+      ),
       ),
       
       // Bottom Navigation Bar

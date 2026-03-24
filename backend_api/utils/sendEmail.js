@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { EMAIL } = require('../config/constants');
 
 const sendEmail = async (options) => {
 
@@ -12,7 +13,7 @@ const sendEmail = async (options) => {
 
  
   const mailOptions = {
-    from: `"E-Fine Support" <${process.env.EMAIL_USER}>`,
+    from: `"${EMAIL.FROM_NAME}" <${process.env.EMAIL_USER}>`,
     to: options.email, 
     subject: options.subject, 
     text: options.message, 

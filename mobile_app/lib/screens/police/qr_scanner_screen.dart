@@ -11,7 +11,7 @@ class QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
-  bool _isScanned = false; // එකපාරක් Scan වුනාම ආයේ Scan නොවෙන්න
+  bool _isScanned = false; // Prevent multiple scans once scanned
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       ),
       body: MobileScanner(
         onDetect: (capture) {
-          if (_isScanned) return; // දැනටමත් Scan වෙලා නම් නවතින්න
+          if (_isScanned) return; // Stop if already scanned
           
           final List<Barcode> barcodes = capture.barcodes;
           for (final barcode in barcodes) {
@@ -31,7 +31,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               setState(() => _isScanned = true);
               
               final String code = barcode.rawValue!;
-              // Scan වුන දත්ත ටික අරගෙන ආපහු Home එකට යන්න
+              // Take the scanned data and return to Home
               Navigator.pop(context, code);
               break;
             }

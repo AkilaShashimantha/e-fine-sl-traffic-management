@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ROLES } = require('../config/constants');
 
 const policeSchema = mongoose.Schema({
  
@@ -38,7 +39,7 @@ const policeSchema = mongoose.Schema({
     // --- Role 
     role: { 
         type: String, 
-        default: 'officer' 
+        default: ROLES.OFFICER 
     },
 }, {
     timestamps: true

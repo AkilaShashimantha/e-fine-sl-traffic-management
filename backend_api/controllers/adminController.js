@@ -8,11 +8,12 @@ const Police = require('../models/policeModel');
 const IssuedFine = require('../models/issuedFineModel');
 const Offense = require('../models/offenseModel');
 const { sendLicenseStatusEmail } = require('../services/emailService');
+const { HTTP, ROLES, PAYMENT, AUTH, PAGINATION } = require('../config/constants');
 
 // Generate JWT Token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '24h'
+        expiresIn: AUTH.JWT_EXPIRY
     });
 };
 
@@ -25,26 +26,26 @@ const adminLogin = async (req, res) => {
 
         // Validate input
         if (!email || !password) {
-            return res.status(400).json({ message: 'Please provide email and password' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Please provide email and password' });
         }
 
         // Find admin by email
         const admin = await Admin.findOne({ email });
 
         if (!admin) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(HTTP.UNAUTHORIZED).json({ message: 'Invalid credentials' });
         }
 
         // Check if account is active
         if (!admin.isActive) {
-            return res.status(403).json({ message: 'Account is deactivated' });
+            return res.status(HTTP.FORBIDDEN).json({ message: 'Account is deactivated' });
         }
 
         // Check password
         const isPasswordMatch = await bcrypt.compare(password, admin.password);
 
         if (!isPasswordMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(HTTP.UNAUTHORIZED).json({ message: 'Invalid credentials' });
         }
 
         // 2FA Verification Logic
@@ -53,7 +54,7 @@ const adminLogin = async (req, res) => {
             // Or if verified, require token.
 
             if (!totpToken) {
-                return res.status(403).json({
+                return res.status(HTTP.FORBIDDEN).json({
                     requireTwoFactor: true,
                     message: 'Two-factor authentication required'
                 });
@@ -67,7 +68,7 @@ const adminLogin = async (req, res) => {
             });
 
             if (!verified) {
-                return res.status(401).json({ message: 'Invalid 2FA code' });
+                return res.status(HTTP.UNAUTHORIZED).json({ message: 'Invalid 2FA code' });
             }
         }
 
@@ -92,7 +93,7 @@ const adminLogin = async (req, res) => {
 
     } catch (error) {
         console.error('Admin login error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -115,7 +116,7 @@ const generateTwoFactor = async (req, res) => {
 
     } catch (error) {
         console.error('Generate 2FA error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -134,7 +135,7 @@ const enableTwoFactor = async (req, res) => {
         });
 
         if (!verified) {
-            return res.status(400).json({ message: 'Invalid verification code' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Invalid verification code' });
         }
 
         await Admin.findByIdAndUpdate(userId, {
@@ -150,7 +151,7 @@ const enableTwoFactor = async (req, res) => {
 
     } catch (error) {
         console.error('Enable 2FA error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -163,13 +164,13 @@ const disableTwoFactor = async (req, res) => {
         const admin = await Admin.findById(req.user.id);
 
         if (!admin) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'User not found' });
         }
 
         const isPasswordMatch = await bcrypt.compare(password, admin.password);
 
         if (!isPasswordMatch) {
-            return res.status(401).json({ message: 'Invalid password' });
+            return res.status(HTTP.UNAUTHORIZED).json({ message: 'Invalid password' });
         }
 
         admin.twoFactorSecret = undefined;
@@ -184,7 +185,7 @@ const disableTwoFactor = async (req, res) => {
 
     } catch (error) {
         console.error('Disable 2FA error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -197,12 +198,12 @@ const initAdminRegistration = async (req, res) => {
 
         // Validation
         if (!name || !email || !password || !role) {
-            return res.status(400).json({ message: 'Please provide all fields' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Please provide all fields' });
         }
 
         const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) {
-            return res.status(400).json({ message: 'Email already exists' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Email already exists' });
         }
 
         // Generate 2FA secret
@@ -222,7 +223,7 @@ const initAdminRegistration = async (req, res) => {
 
     } catch (error) {
         console.error('Init admin reg error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -241,7 +242,7 @@ const completeAdminRegistration = async (req, res) => {
         });
 
         if (!verified) {
-            return res.status(400).json({ message: 'Invalid verification code. Registration failed.' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Invalid verification code. Registration failed.' });
         }
 
         // Hash password
@@ -260,7 +261,7 @@ const completeAdminRegistration = async (req, res) => {
             profileImage: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
         });
 
-        res.status(201).json({
+        res.status(HTTP.CREATED).json({
             success: true,
             message: 'Admin registered successfully with 2FA enabled',
             admin: {
@@ -273,7 +274,7 @@ const completeAdminRegistration = async (req, res) => {
 
     } catch (error) {
         console.error('Complete admin reg error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -293,16 +294,16 @@ const getDashboardStats = async (req, res) => {
 
         // Total revenue (sum of all paid fines)
         const revenueResult = await IssuedFine.aggregate([
-            { $match: { status: 'Paid' } },
+            { $match: { status: PAYMENT.STATUS.PAID } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]);
         const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
 
         // Pending payments
-        const pendingPayments = await IssuedFine.countDocuments({ status: 'Unpaid' });
+        const pendingPayments = await IssuedFine.countDocuments({ status: PAYMENT.STATUS.UNPAID });
 
         // Completed payments
-        const completedPayments = await IssuedFine.countDocuments({ status: 'Paid' });
+        const completedPayments = await IssuedFine.countDocuments({ status: PAYMENT.STATUS.PAID });
 
         // Total drivers
         const totalDrivers = await Driver.countDocuments();
@@ -326,7 +327,7 @@ const getDashboardStats = async (req, res) => {
             .populate('offenseId', 'offenseName');
 
         // Recent payments (last 5)
-        const recentPayments = await IssuedFine.find({ status: 'Paid' })
+        const recentPayments = await IssuedFine.find({ status: PAYMENT.STATUS.PAID })
             .sort({ paidAt: -1 })
             .limit(5);
 
@@ -352,7 +353,7 @@ const getDashboardStats = async (req, res) => {
 
     } catch (error) {
         console.error('Dashboard stats error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -405,7 +406,7 @@ const getAllDrivers = async (req, res) => {
 
     } catch (error) {
         console.error('Get drivers error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -417,7 +418,7 @@ const getDriverDetails = async (req, res) => {
         const driver = await Driver.findById(req.params.id).select('-password');
 
         if (!driver) {
-            return res.status(404).json({ message: 'Driver not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Driver not found' });
         }
 
         // Get driver's violation history
@@ -433,7 +434,7 @@ const getDriverDetails = async (req, res) => {
 
     } catch (error) {
         console.error('Get driver details error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -445,11 +446,11 @@ const suspendDriver = async (req, res) => {
         const driver = await Driver.findById(req.params.id);
 
         if (!driver) {
-            return res.status(404).json({ message: 'Driver not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Driver not found' });
         }
 
         if (driver.licenseStatus === 'SUSPENDED') {
-            return res.status(400).json({ message: 'License is already suspended' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'License is already suspended' });
         }
 
         // Update license status
@@ -478,7 +479,7 @@ const suspendDriver = async (req, res) => {
 
     } catch (error) {
         console.error('Suspend driver error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -490,11 +491,11 @@ const activateDriver = async (req, res) => {
         const driver = await Driver.findById(req.params.id);
 
         if (!driver) {
-            return res.status(404).json({ message: 'Driver not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Driver not found' });
         }
 
         if (driver.licenseStatus === 'ACTIVE') {
-            return res.status(400).json({ message: 'License is already active' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'License is already active' });
         }
 
         // Update license status
@@ -524,7 +525,7 @@ const activateDriver = async (req, res) => {
 
     } catch (error) {
         console.error('Activate driver error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -572,7 +573,7 @@ const getAllOfficers = async (req, res) => {
 
     } catch (error) {
         console.error('Get officers error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -585,19 +586,19 @@ const createOfficer = async (req, res) => {
 
         // Validate required fields
         if (!name || !email || !badgeNumber || !password || !policeStation || !position) {
-            return res.status(400).json({ message: 'Please provide all required fields' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Please provide all required fields' });
         }
 
         // Check if badge number already exists
         const existingOfficer = await Police.findOne({ badgeNumber });
         if (existingOfficer) {
-            return res.status(400).json({ message: 'Badge number already exists' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Badge number already exists' });
         }
 
         // Check if email already exists
         const existingEmail = await Police.findOne({ email });
         if (existingEmail) {
-            return res.status(400).json({ message: 'Email already exists' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Email already exists' });
         }
 
         // Hash password
@@ -615,7 +616,7 @@ const createOfficer = async (req, res) => {
             profileImage: profileImage || 'https://cdn-icons-png.flaticon.com/512/206/206853.png'
         });
 
-        res.status(201).json({
+        res.status(HTTP.CREATED).json({
             success: true,
             message: 'Police officer created successfully',
             officer: {
@@ -631,7 +632,7 @@ const createOfficer = async (req, res) => {
 
     } catch (error) {
         console.error('Create officer error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -643,7 +644,7 @@ const updateOfficer = async (req, res) => {
         const officer = await Police.findById(req.params.id);
 
         if (!officer) {
-            return res.status(404).json({ message: 'Officer not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Officer not found' });
         }
 
         const { name, email, policeStation, position, profileImage } = req.body;
@@ -673,7 +674,7 @@ const updateOfficer = async (req, res) => {
 
     } catch (error) {
         console.error('Update officer error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -685,7 +686,7 @@ const deleteOfficer = async (req, res) => {
         const officer = await Police.findById(req.params.id);
 
         if (!officer) {
-            return res.status(404).json({ message: 'Officer not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Officer not found' });
         }
 
         await officer.deleteOne();
@@ -697,7 +698,7 @@ const deleteOfficer = async (req, res) => {
 
     } catch (error) {
         console.error('Delete officer error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -758,7 +759,7 @@ const getAllIssuedFines = async (req, res) => {
 
     } catch (error) {
         console.error('Get fines error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -770,7 +771,7 @@ const updateOffense = async (req, res) => {
         const offense = await Offense.findById(req.params.id);
 
         if (!offense) {
-            return res.status(404).json({ message: 'Offense not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Offense not found' });
         }
 
         const { offenseName, amount, description, sectionOfAct } = req.body;
@@ -791,7 +792,7 @@ const updateOffense = async (req, res) => {
 
     } catch (error) {
         console.error('Update offense error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -803,13 +804,13 @@ const deleteOffense = async (req, res) => {
         const offense = await Offense.findById(req.params.id);
 
         if (!offense) {
-            return res.status(404).json({ message: 'Offense not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Offense not found' });
         }
 
         // Check if offense is referenced in any issued fines
         const issuedFine = await IssuedFine.findOne({ offenseId: req.params.id });
         if (issuedFine) {
-            return res.status(400).json({
+            return res.status(HTTP.BAD_REQUEST).json({
                 message: 'Cannot delete offense - it is referenced in issued fines'
             });
         }
@@ -823,7 +824,7 @@ const deleteOffense = async (req, res) => {
 
     } catch (error) {
         console.error('Delete offense error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -837,7 +838,7 @@ const getAllPayments = async (req, res) => {
         const skip = (page - 1) * limit;
 
         // Build query for paid fines only
-        let query = { status: 'Paid' };
+        let query = { status: PAYMENT.STATUS.PAID };
 
         // Filter by date range
         if (req.query.startDate || req.query.endDate) {
@@ -871,7 +872,7 @@ const getAllPayments = async (req, res) => {
 
     } catch (error) {
         console.error('Get payments error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -883,7 +884,7 @@ const generateMonthlyReport = async (req, res) => {
         const { month, year } = req.body;
 
         if (!month || !year) {
-            return res.status(400).json({ message: 'Please provide month and year' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Please provide month and year' });
         }
 
         // Calculate date range
@@ -897,10 +898,10 @@ const generateMonthlyReport = async (req, res) => {
 
         // Calculate statistics
         const totalFines = fines.length;
-        const paidFines = fines.filter(f => f.status === 'Paid').length;
-        const unpaidFines = fines.filter(f => f.status === 'Unpaid').length;
+        const paidFines = fines.filter(f => f.status === PAYMENT.STATUS.PAID).length;
+        const unpaidFines = fines.filter(f => f.status === PAYMENT.STATUS.UNPAID).length;
         const totalAmount = fines.reduce((sum, f) => sum + f.amount, 0);
-        const paidAmount = fines.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0);
+        const paidAmount = fines.filter(f => f.status === PAYMENT.STATUS.PAID).reduce((sum, f) => sum + f.amount, 0);
 
         // Offense breakdown
         const offenseBreakdown = {};
@@ -934,7 +935,7 @@ const generateMonthlyReport = async (req, res) => {
 
     } catch (error) {
         console.error('Generate monthly report error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -946,12 +947,12 @@ const generatePaymentReport = async (req, res) => {
         const { startDate, endDate } = req.body;
 
         if (!startDate || !endDate) {
-            return res.status(400).json({ message: 'Please provide start and end dates' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Please provide start and end dates' });
         }
 
         // Get paid fines in date range
         const payments = await IssuedFine.find({
-            status: 'Paid',
+            status: PAYMENT.STATUS.PAID,
             paidAt: { $gte: new Date(startDate), $lte: new Date(endDate) }
         }).populate('offenseId', 'offenseName');
 
@@ -973,7 +974,7 @@ const generatePaymentReport = async (req, res) => {
 
     } catch (error) {
         console.error('Generate payment report error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -985,12 +986,12 @@ const generateDriverViolationReport = async (req, res) => {
         const { licenseNumber } = req.body;
 
         if (!licenseNumber) {
-            return res.status(400).json({ message: 'Please provide license number' });
+            return res.status(HTTP.BAD_REQUEST).json({ message: 'Please provide license number' });
         }
 
         const driver = await Driver.findOne({ licenseNumber });
         if (!driver) {
-            return res.status(404).json({ message: 'Driver not found' });
+            return res.status(HTTP.NOT_FOUND).json({ message: 'Driver not found' });
         }
 
         const violations = await IssuedFine.find({ licenseNumber })
@@ -1009,7 +1010,7 @@ const generateDriverViolationReport = async (req, res) => {
 
     } catch (error) {
         console.error('Generate driver report error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(HTTP.SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
