@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../services/fine_service.dart';
+import '../../config/app_constants.dart';
 
 class NewFineScreen extends StatefulWidget {
   final String? scannedLicenseNumber;
@@ -149,7 +150,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Fine Issued Successfully!"),
-            backgroundColor: Colors.green));
+            backgroundColor: AppColors.successGreen));
         Navigator.pop(context);
       }
     } catch (e) {
@@ -159,7 +160,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
             context: context,
             builder: (ctx) => AlertDialog(
                   title: const Text("Failed to Issue Fine",
-                      style: TextStyle(color: Colors.red)),
+                      style: TextStyle(color: AppColors.errorRed)),
                   content: Text(errorMessage),
                   actions: [
                     TextButton(
@@ -178,7 +179,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
     return Scaffold(
       appBar: AppBar(
           title: const Text("Issue New Fine"),
-          backgroundColor: const Color(0xFF0D47A1),
+          backgroundColor: AppColors.primaryBlue,
           foregroundColor: Colors.white),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -190,8 +191,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
               const Text("Details",
                   style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0D47A1))),
+                      color: AppColors.primaryBlue)),
               const SizedBox(height: 15),
               TextFormField(
                 controller: _licenseController,
@@ -216,8 +216,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
               const Text("Offense",
                   style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0D47A1))),
+                      color: AppColors.primaryBlue)),
               const SizedBox(height: 15),
 
               // --- Dynamic Dropdown ---
@@ -303,7 +302,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text("ISSUE FINE"),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: AppColors.errorRed,
                       foregroundColor: Colors.white),
                 ),
               ),

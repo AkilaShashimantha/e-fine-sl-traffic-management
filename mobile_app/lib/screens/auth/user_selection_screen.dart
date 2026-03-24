@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'police_signup_screen.dart';
 import 'driver_signup_screen.dart'; 
+import '../../config/app_constants.dart';
 
 class UserSelectionScreen extends StatelessWidget {
   const UserSelectionScreen({super.key});
@@ -26,7 +27,7 @@ class UserSelectionScreen extends StatelessWidget {
                 context,
                 title: "Police Officer",
                 icon: Icons.local_police,
-                color: Colors.blue[900]!,
+                color: AppColors.primaryBlue,
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const PoliceSignupScreen()));
                 },
@@ -39,7 +40,7 @@ class UserSelectionScreen extends StatelessWidget {
                 context,
                 title: "Vehicle Driver",
                 icon: Icons.directions_car,
-                color: Colors.green[700]!,
+                color: AppColors.primaryGreenDark,
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const DriverSignupScreen()));
                 },

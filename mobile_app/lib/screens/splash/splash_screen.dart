@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; 
 import '../auth/login_screen.dart'; 
+import '../../config/app_constants.dart'; 
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
      
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: AppColors.primaryBlue,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -43,14 +44,14 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.white, 
+                color: AppColors.cardWhite, 
               ),
             ),
             const SizedBox(height: 48),
 
         
             const CircularProgressIndicator(
-              color: Colors.white,
+              color: AppColors.cardWhite,
             ),
           ],
         ),

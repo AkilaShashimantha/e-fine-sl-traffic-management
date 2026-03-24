@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../config/app_constants.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -18,7 +19,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Scan Driver QR"),
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
       ),
       body: MobileScanner(

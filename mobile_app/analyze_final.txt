@@ -1,0 +1,7 @@
+﻿Analyzing mobile_app...                                         
+
+warning - The '!' will have no effect because the receiver can't be null - lib\main.dart:45:117 - unnecessary_non_null_assertion
+warning - The '!' will have no effect because the receiver can't be null - lib\main.dart:66:51 - unnecessary_non_null_assertion
+  error - The getter 'name' isn't defined for the type 'PrefKeys' - lib\services\auth_service.dart:40:42 - undefined_getter
+  error - The getter 'badgeNum' isn't defined for the type 'PrefKeys' - lib\services\fine_service.dart:74:57 - undefined_getter
+

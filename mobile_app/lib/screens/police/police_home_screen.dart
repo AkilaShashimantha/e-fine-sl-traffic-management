@@ -7,6 +7,7 @@ import 'new_fine.dart';
 import 'fine_history_screen.dart';
 import 'profile_screen.dart';
 import 'qr_scanner_screen.dart'; // [NEW] Imported QR Scanner
+import '../../config/app_constants.dart';
 
 class PoliceHomeScreen extends StatefulWidget {
   const PoliceHomeScreen({super.key});
@@ -32,7 +33,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
 
   // --- Data Fetching Section ---
   Future<void> _loadUserData() async {
-    String? storedName = await _storage.read(key: 'name');
+    String? storedName = await _storage.read(key: PrefKeys.userName);
     String? storedBadge = await _storage.read(key: 'badgeNumber');
     String? storedRank = await _storage.read(key: 'position');
     String? serverImg = await _storage.read(key: 'serverProfileImage');
@@ -197,7 +198,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
         title: const Text("Traffic Control Unit",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -219,7 +220,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
             Container(
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
               decoration: const BoxDecoration(
-                color: Color(0xFF0D47A1),
+                color: AppColors.primaryBlue,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
@@ -298,7 +299,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                       _buildMenuCard(
                           title: "New Fine",
                           icon: Icons.note_add_outlined,
-                          color: Colors.redAccent,
+                          color: AppColors.errorRed,
                           onTap: () {
                             Navigator.push(
                                 context,
@@ -311,14 +312,14 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                       _buildMenuCard(
                           title: "Check License",
                           icon: Icons.qr_code_scanner,
-                          color: Colors.blue,
+                          color: AppColors.primaryBlue,
                           onTap: _handleQRScan // Navigating to Scanner from here
                           ),
 
                       _buildMenuCard(
                           title: "Fine History",
                           icon: Icons.history,
-                          color: Colors.orange,
+                          color: AppColors.warningOrange,
                           onTap: () {
                             Navigator.push(
                                 context,
@@ -331,7 +332,7 @@ class _PoliceHomeScreenState extends State<PoliceHomeScreen> {
                       _buildMenuCard(
                         title: "Profile",
                         icon: Icons.person_outline,
-                        color: Colors.green,
+                        color: AppColors.primaryGreen,
                         onTap: () {
                           Navigator.push(
                               context,

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'api_logger.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/app_constants.dart';
 
 class AuthService {
   // Emulator: 10.0.2.2 | Real Device: Your PC IP Address
-  // final String baseUrl = "http://192.168.8.114:5000/api"; 
-   final String baseUrl = "https://e-fine-sl-traffic-management-1.onrender.com/api"; 
+  final String baseUrl = ApiConstants.baseUrl; 
   final _storage = const FlutterSecureStorage();
 
   // -------------------------
@@ -14,13 +14,13 @@ class AuthService {
 
   // Get Token
   Future<String?> getToken() async {
-    return await _storage.read(key: 'token');
+    return await _storage.read(key: PrefKeys.authToken);
   }
 
   // Logout
   Future<void> logout() async {
-    await _storage.delete(key: 'token');
-    await _storage.delete(key: 'user');
+    await _storage.delete(key: PrefKeys.authToken);
+    await _storage.delete(key: PrefKeys.user);
   }
 
   // Login (Common for Police & Driver)
@@ -36,11 +36,11 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      await _storage.write(key: 'token', value: data['token']);
-      await _storage.write(key: 'name', value: data['name']);
+      await _storage.write(key: PrefKeys.authToken, value: data['token']);
+      await _storage.write(key: PrefKeys.userName, value: data['name']);
       // For drivers, save license number
-      if (data['role'] == 'driver' && data['licenseNumber'] != null) {
-        await _storage.write(key: 'licenseNumber', value: data['licenseNumber']);
+      if (data['role'] == UserRoles.driver && data['licenseNumber'] != null) {
+        await _storage.write(key: PrefKeys.licenseNum, value: data['licenseNumber']);
       }
       // Save user role and data if needed
       return data;

@@ -4,6 +4,7 @@ import 'package:mobile_app/services/theme_manager.dart';
 import 'package:mobile_app/screens/auth/login_screen.dart';
 import 'package:mobile_app/screens/driver/profile_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../config/app_constants.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -107,12 +108,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: AppColors.errorRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.logout, color: Colors.red),
+              child: const Icon(Icons.logout, color: AppColors.errorRed),
             ),
-            title: const Text("Logout", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            title: const Text("Logout", style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold)),
             onTap: _logout,
           ),
         ],

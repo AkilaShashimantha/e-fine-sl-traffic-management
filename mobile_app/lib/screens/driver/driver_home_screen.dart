@@ -10,6 +10,7 @@ import 'package:mobile_app/screens/driver/pay_fine_screen.dart';
 import 'package:mobile_app/screens/driver/payment_history_screen.dart';
 import 'package:mobile_app/screens/settings_screen.dart';
 import 'package:mobile_app/widgets/demerit_status_card.dart';
+import '../../config/app_constants.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -92,7 +93,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   // --- Session Management Part ---
   Future<void> _loadUserData() async {
-    String? name = await _storage.read(key: 'name');
+    String? name = await _storage.read(key: PrefKeys.userName);
     if (mounted) {
       setState(() {
         driverName = name ?? "Driver"; 
@@ -229,7 +230,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
-                      color: Colors.red,
+                      color: AppColors.errorRed,
                       shape: BoxShape.circle,
                     ),
                     child: const Text(
@@ -302,13 +303,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: Colors.red[50], 
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.red.withAlpha((0.5 * 255).toInt())),
+                      color: AppColors.errorBg, 
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.errorRed.withAlpha((0.5 * 255).toInt())),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 30),
+                        const Icon(Icons.warning_amber_rounded, color: AppColors.errorRed, size: 30),
                         const SizedBox(width: 15),
                         Expanded(
                           child: Column(
@@ -316,7 +317,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             children: [
                               Text(
                                 "unpaid_title".tr(),
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.errorRed, fontSize: 16),
                               ),
                               Text(
                                 "unpaid_msg".tr(),
@@ -325,7 +326,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.red, size: 16)
+                        const Icon(Icons.arrow_forward_ios, color: AppColors.errorRed, size: 16)
                       ],
                     ),
                   ),
@@ -367,7 +368,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       );
                   }),
                   _buildActionCard(Icons.wallet, "wallet".tr(), Colors.purple, () { }),
-                  _buildActionCard(Icons.report_problem, "report".tr(), Colors.red, () { }),
+                  _buildActionCard(Icons.report_problem, "report".tr(), AppColors.errorRed, () { }),
                 ],
               ),
             ),
@@ -379,7 +380,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.green[800],
+        selectedItemColor: AppColors.primaryGreen,
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
         items: [
@@ -410,7 +411,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           // Header
           Container(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-            color: Colors.green[800],
+            color: AppColors.primaryGreen,
             child: Row(
               children: [
                 const Icon(Icons.notifications_active, color: Colors.white),
@@ -452,12 +453,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
-                          color: isRead ? Colors.white : Colors.red[50], // Highlight unread
+                          color: isRead ? Colors.white : AppColors.errorBg, // Highlight unread
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(color: Colors.grey.withAlpha(26), spreadRadius: 1, blurRadius: 5)
                           ],
-                          border: Border(left: BorderSide(color: isRead ? Colors.grey[300]! : Colors.red, width: 4))
+                          border: Border(left: BorderSide(color: isRead ? Colors.grey[300]! : AppColors.errorRed, width: 4))
                         ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
@@ -475,7 +476,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                               if (!isRead)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
+                                  decoration: BoxDecoration(color: AppColors.errorRed, borderRadius: BorderRadius.circular(10)),
                                   child: const Text("NEW", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                 )
                             ],
@@ -533,9 +534,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: Colors.red,
+                              foregroundColor: AppColors.errorRed,
                               elevation: 0,
-                              side: const BorderSide(color: Colors.red),
+                              side: const BorderSide(color: AppColors.errorRed),
                               padding: const EdgeInsets.symmetric(horizontal: 10),
                             ),
                             child: const Text("Pay"),

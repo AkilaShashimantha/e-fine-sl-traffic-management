@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart'; 
 import 'screens/splash/splash_screen.dart';
 import 'services/theme_manager.dart';
+import 'config/app_constants.dart';
 
 void main() async {
   
@@ -40,38 +41,38 @@ class EFineApp extends StatelessWidget {
           
           themeMode: mode,
           theme: ThemeData(
-            primaryColor: Colors.green[700],
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, primary: Colors.green[700]!),
+            primaryColor: AppColors.primaryGreenDark,
+            colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryGreen, primary: AppColors.primaryGreenDark),
             useMaterial3: true,
             fontFamily: 'Poppins',
-            scaffoldBackgroundColor: Colors.grey[100],
-            cardColor: Colors.white,
-            appBarTheme: AppBarTheme(
-              backgroundColor: Colors.green[700],
+            scaffoldBackgroundColor: AppColors.background,
+            cardColor: AppColors.cardWhite,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: AppColors.primaryGreenDark,
               foregroundColor: Colors.white,
             ),
-            bottomNavigationBarTheme: BottomNavigationBarThemeData(
-              selectedItemColor: Colors.green[800],
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              selectedItemColor: AppColors.primaryGreenDark,
               unselectedItemColor: Colors.grey,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.cardWhite,
               elevation: 10,
             ),
           ),
           darkTheme: ThemeData.dark().copyWith(
-             primaryColor: Colors.green[800],
+             primaryColor: AppColors.primaryGreenDark,
              scaffoldBackgroundColor: const Color(0xFF121212),
              cardColor: const Color(0xFF1E1E1E),
              colorScheme: ColorScheme.dark(
-               primary: Colors.green[700]!, 
-               secondary: Colors.greenAccent,
+               primary: AppColors.primaryGreenDark, 
+               secondary: AppColors.primaryGreenLight,
                surface: const Color(0xFF1E1E1E),
              ),
-             appBarTheme: AppBarTheme(
-               backgroundColor: Colors.green[800], // Match Primary Color (Standard Green)
+             appBarTheme: const AppBarTheme(
+               backgroundColor: AppColors.primaryGreenDark,
                foregroundColor: Colors.white,
              ),
              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-               selectedItemColor: Colors.greenAccent, // Lighter for visibility
+               selectedItemColor: AppColors.primaryGreenLight,
                unselectedItemColor: Colors.grey,
                backgroundColor: Color(0xFF1E1E1E),
                elevation: 0,

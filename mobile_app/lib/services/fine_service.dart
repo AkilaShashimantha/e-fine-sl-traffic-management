@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'api_logger.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/app_constants.dart';
 
 class FineService {
   // Your IP address (change here if it changes)
-  // static const String baseUrl = 'http://192.168.8.114:5000/api';
-  static const String baseUrl = 'https://e-fine-sl-traffic-management-1.onrender.com/api';
+  static const String baseUrl = ApiConstants.baseUrl;
   final _storage = const FlutterSecureStorage();
 
   // ----------------------------------------------------------------
@@ -14,7 +14,7 @@ class FineService {
   // ----------------------------------------------------------------
   Future<List<dynamic>> getOffenses() async {
     try {
-      String? token = await _storage.read(key: 'token');
+      String? token = await _storage.read(key: PrefKeys.authToken);
       if (token == null) return [];
 
       final response = await http.get(
@@ -40,7 +40,7 @@ class FineService {
   // ----------------------------------------------------------------
   Future<bool> issueFine(Map<String, dynamic> fineData) async {
     try {
-      String? token = await _storage.read(key: 'token');
+      String? token = await _storage.read(key: PrefKeys.authToken);
       if (token == null) {
         throw Exception("Token missing. Please Logout & Login.");
       }
@@ -70,8 +70,8 @@ class FineService {
   // ----------------------------------------------------------------
   Future<List<Map<String, dynamic>>> getOfficerFineHistory() async {
     try {
-      String? token = await _storage.read(key: 'token');
-      String? badge = await _storage.read(key: 'badgeNumber'); // Officer ID
+      String? token = await _storage.read(key: PrefKeys.authToken);
+      String? badge = await _storage.read(key: PrefKeys.badgeNumber); // Officer ID
 
       if (token == null || badge == null) {
         throw Exception("Auth data missing. Logout and Login.");
@@ -111,7 +111,7 @@ class FineService {
   // ----------------------------------------------------------------
   Future<List<Map<String, dynamic>>> getDriverPendingFines() async {
      try {
-      String? token = await _storage.read(key: 'token');
+      String? token = await _storage.read(key: PrefKeys.authToken);
       // When Driver logs in, licenseNumber must be saved from AuthService.
       // Otherwise, we cannot extract it here.
       // For now, let's assume it has been saved by AuthService.
@@ -128,7 +128,7 @@ class FineService {
       // * Correction in AuthService: Save License Number on Login
       
       // Let's assume we saved it as 'licenseNumber'
-      String? licenseNumber = await _storage.read(key: 'licenseNumber'); // * Make sure to save this in AuthService login!
+      String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum); // * Make sure to save this in AuthService login!
       
        if (token == null ) {
          return [];
@@ -187,7 +187,7 @@ class FineService {
 
   // Get Paid History
   Future<List<Map<String, dynamic>>> getDriverPaidFines() async {
-    String? licenseNumber = await _storage.read(key: 'licenseNumber'); // Correct Key
+    String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum); // Correct Key
     if (licenseNumber == null) return [];
 
     final url = Uri.parse('$baseUrl/fines/driver-history?licenseNumber=$licenseNumber');
@@ -210,8 +210,8 @@ class FineService {
   // ----------------------------------------------------------------
   Future<Map<String, dynamic>> getDriverStatus() async {
     try {
-      String? token = await _storage.read(key: 'token');
-      String? licenseNumber = await _storage.read(key: 'licenseNumber');
+      String? token = await _storage.read(key: PrefKeys.authToken);
+      String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum);
 
       if (token == null || licenseNumber == null) {
         throw Exception("Auth data missing.");

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
+import '../../config/app_constants.dart';
 
 class PoliceSignupScreen extends StatefulWidget {
   const PoliceSignupScreen({super.key});
@@ -98,13 +99,13 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AppColors.errorRed),
     );
   }
 
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
+      SnackBar(content: Text(message), backgroundColor: AppColors.successGreen),
     );
   }
 
@@ -247,7 +248,7 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Police Registration"),
-        backgroundColor: const Color(0xFF0D47A1), 
+        backgroundColor: AppColors.primaryBlue, 
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -280,7 +281,7 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
                   filterFn: (item, filter) => item['name'].toLowerCase().contains(filter.toLowerCase()),
                 ),
               const SizedBox(height: 30),
-              SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _isLoading ? null : _requestOTP, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D47A1), foregroundColor: Colors.white), child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("Request Verification Code"))),
+              SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _isLoading ? null : _requestOTP, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white), child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("Request Verification Code"))),
             ],
 
             // STEP 2: Verify OTP
@@ -289,12 +290,12 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
               const SizedBox(height: 20),
               TextField(controller: _otpController, keyboardType: TextInputType.number, textAlign: TextAlign.center, maxLength: 6, decoration: const InputDecoration(labelText: "6-Digit OTP", border: OutlineInputBorder())),
               const SizedBox(height: 20),
-              SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _isLoading ? null : _verifyOTP, style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white), child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("Verify Code"))),
+              SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _isLoading ? null : _verifyOTP, style: ElevatedButton.styleFrom(backgroundColor: AppColors.successGreen, foregroundColor: Colors.white), child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("Verify Code"))),
             ],
 
             // STEP 3: Complete Profile
             if (_currentStep == 2) ...[
-              const Text("Step 3: Officer Details", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0D47A1))),
+              const Text("Step 3: Officer Details", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
               const SizedBox(height: 20),
               
               // Camera Capture
@@ -331,7 +332,7 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text("* Photo is Mandatory", style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+              const Text("* Photo is Mandatory", style: TextStyle(color: AppColors.errorRed, fontSize: 12)),
               const SizedBox(height: 20),
 
               TextField(controller: _nameController, decoration: const InputDecoration(labelText: "Full Name", prefixIcon: Icon(Icons.person), border: OutlineInputBorder())),
@@ -388,7 +389,7 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
               ),
               const SizedBox(height: 30),
               
-              SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _isLoading ? null : _completeRegistration, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D47A1), foregroundColor: Colors.white), child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("COMPLETE REGISTRATION"))),
+              SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: _isLoading ? null : _completeRegistration, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white), child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("COMPLETE REGISTRATION"))),
             ],
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_app/services/fine_service.dart';
 import 'package:intl/intl.dart';
+import '../../config/app_constants.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   const PaymentHistoryScreen({super.key});
@@ -37,7 +38,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("Payment History", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.green[800],
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -92,8 +93,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(color: Colors.green.withAlpha(30), shape: BoxShape.circle),
-                              child: const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                              decoration: BoxDecoration(color: AppColors.successGreen.withAlpha(30), shape: BoxShape.circle),
+                              child: const Icon(Icons.check_circle, color: AppColors.successGreen, size: 20),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -104,7 +105,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             ),
                             Text(
                               "LKR ${fine['amount']}",
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryGreen),
                             )
                           ],
                         ),
