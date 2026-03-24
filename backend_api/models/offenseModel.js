@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { DEMERIT } = require('../config/constants');
 
 const offenseSchema = mongoose.Schema(
   {
@@ -22,9 +23,9 @@ const offenseSchema = mongoose.Schema(
     demeritValue: {
       type: Number,
       required: true,
-      default: 10,
+      default: DEMERIT.OFFENSE_LEVELS.MINOR,
       min: 1,
-      max: 100,
+      max: DEMERIT.OFFENSE_LEVELS.CRITICAL,
     }
   },
   {

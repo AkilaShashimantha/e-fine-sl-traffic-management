@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ROLES, DEMERIT, LICENSE_STATUS } = require('../config/constants');
 
 const driverSchema = mongoose.Schema(
   {
@@ -8,12 +9,12 @@ const driverSchema = mongoose.Schema(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-    role: { type: String, default: 'driver' }, // 'driver'
+    role: { type: String, default: ROLES.DRIVER }, // 'driver'
     
     // (Demerit Points)
-    demeritPoints: { type: Number, default: 100 }, 
-    licenseStatus: { type: String, enum: ['ACTIVE', 'SUSPENDED'], default: 'ACTIVE' },
-    demeritLevel: { type: String, enum: ['GOOD', 'WARNING', 'DANGER', 'SUSPENDED'], default: 'GOOD' },
+    demeritPoints: { type: Number, default: DEMERIT.DEFAULT_POINTS }, 
+    licenseStatus: { type: String, enum: [LICENSE_STATUS.ACTIVE, LICENSE_STATUS.SUSPENDED], default: LICENSE_STATUS.ACTIVE },
+    demeritLevel: { type: String, enum: ['GOOD', 'WARNING', 'DANGER', LICENSE_STATUS.SUSPENDED], default: 'GOOD' },
     suspendedAt: { type: Date, default: null },
 
     isVerified: { type: Boolean, default: false },

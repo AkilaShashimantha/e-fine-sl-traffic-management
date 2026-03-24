@@ -1,21 +1,22 @@
 const cron = require('node-cron');
 const Driver = require('../models/driverModel');
+const { DEMERIT, LICENSE_STATUS, CRON } = require('../config/constants');
 
 /**
  * Scheduled Job: Monthly Demerit Point Reset
  * Runs at 00:00 on the 1st of every month.
  * Reinstates suspended drivers with a partial point restore (50 points).
  */
-cron.schedule('0 0 1 * *', async () => {
+cron.schedule(CRON.MONTHLY_RESET, async () => {
   console.log('[CRON] Running monthly demerit point reset...');
 
   try {
     const result = await Driver.updateMany(
-      { licenseStatus: 'SUSPENDED' },
+      { licenseStatus: LICENSE_STATUS.SUSPENDED },
       {
         $set: {
-          demeritPoints: 50,         // partial restore on reinstatement
-          licenseStatus: 'ACTIVE',
+          demeritPoints: DEMERIT.MONTHLY_RESTORE,         // partial restore on reinstatement
+          licenseStatus: LICENSE_STATUS.ACTIVE,
           demeritLevel:  'WARNING',  // 50 pts = Warning range (40–69)
           suspendedAt:   null,
         },

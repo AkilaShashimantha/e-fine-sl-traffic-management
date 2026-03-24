@@ -1,4 +1,5 @@
 const md5 = require('md5');
+const { HTTP } = require('../config/constants');
 
 const generateHash = (req, res) => {
     try {
@@ -8,7 +9,7 @@ const generateHash = (req, res) => {
         const merchantId = process.env.PAYHERE_MERCHANT_ID;
 
         if (!merchantSecret || !merchantId) {
-            return res.status(500).json({ error: "PayHere credentials missing in .env" });
+            return res.status(HTTP.SERVER_ERROR).json({ error: "PayHere credentials missing in .env" });
         }
 
         // 1. Merchant Secret එක Hash කරනවා (md5)
@@ -26,7 +27,7 @@ const generateHash = (req, res) => {
         res.json({ hash: finalHash });
     } catch (error) {
         console.error("Hash Gen Error:", error);
-        res.status(500).json({ error: "Hash generation failed" });
+        res.status(HTTP.SERVER_ERROR).json({ error: "Hash generation failed" });
     }
 };
 

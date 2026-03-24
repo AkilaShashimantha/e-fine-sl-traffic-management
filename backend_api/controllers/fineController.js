@@ -1,15 +1,16 @@
 const Offense = require('../models/offenseModel');
 const IssuedFine = require('../models/issuedFineModel');
 const { applyDemeritPoints } = require('./demeritController');
+const { HTTP, PAYMENT } = require('../config/constants');
 
 // @desc    Get all fine types / offenses
 // @route   GET /api/fines/offenses
 const getOffenses = async (req, res) => {
   try {
     const offenses = await Offense.find({}).sort({ offenseName: 1 });
-    res.status(200).json(offenses);
+    res.status(HTTP.OK).json(offenses);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -19,9 +20,9 @@ const addOffense = async (req, res) => {
   const { offenseName, amount, description } = req.body;
   try {
     const offense = await Offense.create({ offenseName, amount, description });
-    res.status(201).json(offense);
+    res.status(HTTP.CREATED).json(offense);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to add offense', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Failed to add offense', error: error.message });
   }
 };
 
@@ -31,7 +32,7 @@ const issueFine = async (req, res) => {
   const { licenseNumber, vehicleNumber, offenseId, offenseName, amount, place, policeOfficerId, date } = req.body;
 
   if (!licenseNumber || !vehicleNumber || !offenseId || !place || !policeOfficerId) {
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(HTTP.BAD_REQUEST).json({ message: 'All fields are required' });
   }
 
   try {
@@ -53,14 +54,14 @@ const issueFine = async (req, res) => {
       console.error('[Demerit] Failed to apply points:', demeritErr.message);
     }
 
-    res.status(201).json({
+    res.status(HTTP.CREATED).json({
       message: 'Fine issued successfully',
       fine,
       demeritResult,
     });
   } catch (error) {
     console.error("Error issuing fine:", error);
-    res.status(500).json({ message: 'Failed to issue fine', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Failed to issue fine', error: error.message });
   }
 };
 
@@ -74,9 +75,9 @@ const getFineHistory = async (req, res) => {
 
     const history = await IssuedFine.find(query).sort({ createdAt: -1 });
 
-    res.status(200).json(history);
+    res.status(HTTP.OK).json(history);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to get history', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Failed to get history', error: error.message });
   }
 };
 
@@ -87,17 +88,17 @@ const getDriverPendingFines = async (req, res) => {
     const { licenseNumber } = req.query;
 
     if (!licenseNumber) {
-      return res.status(400).json({ message: 'License number is required' });
+      return res.status(HTTP.BAD_REQUEST).json({ message: 'License number is required' });
     }
 
     const fines = await IssuedFine.find({
       licenseNumber: licenseNumber,
-      status: { $in: ['Unpaid', 'Pending'] }
+      status: { $in: [PAYMENT.STATUS.UNPAID, PAYMENT.STATUS.PENDING] }
     }).sort({ createdAt: -1 });
 
-    res.status(200).json(fines);
+    res.status(HTTP.OK).json(fines);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch pending fines', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Failed to fetch pending fines', error: error.message });
   }
 };
 
@@ -111,22 +112,22 @@ const payFine = async (req, res) => {
     const fine = await IssuedFine.findById(id);
 
     if (!fine) {
-      return res.status(404).json({ message: 'Fine not found' });
+      return res.status(HTTP.NOT_FOUND).json({ message: 'Fine not found' });
     }
 
-    if (fine.status === 'Paid') {
-      return res.status(400).json({ message: 'Fine is already paid' });
+    if (fine.status === PAYMENT.STATUS.PAID) {
+      return res.status(HTTP.BAD_REQUEST).json({ message: 'Fine is already paid' });
     }
 
-    fine.status = 'Paid';
+    fine.status = PAYMENT.STATUS.PAID;
     fine.paymentId = paymentId;
     fine.paidAt = Date.now();
 
     await fine.save();
 
-    res.status(200).json({ message: 'Fine paid successfully', fine });
+    res.status(HTTP.OK).json({ message: 'Fine paid successfully', fine });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update payment', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Failed to update payment', error: error.message });
   }
 };
 
@@ -137,17 +138,17 @@ const getDriverPaidHistory = async (req, res) => {
     const { licenseNumber } = req.query;
 
     if (!licenseNumber) {
-      return res.status(400).json({ message: 'License number is required' });
+      return res.status(HTTP.BAD_REQUEST).json({ message: 'License number is required' });
     }
 
     const fines = await IssuedFine.find({
       licenseNumber: licenseNumber,
-      status: 'Paid'
+      status: PAYMENT.STATUS.PAID
     }).sort({ paidAt: -1 });
 
-    res.status(200).json(fines);
+    res.status(HTTP.OK).json(fines);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch history', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Failed to fetch history', error: error.message });
   }
 };
 

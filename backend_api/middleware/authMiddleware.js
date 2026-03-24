@@ -1,12 +1,13 @@
 const jwt = require('jsonwebtoken');
 const Driver = require('../models/driverModel');
 const Police = require('../models/policeModel');
+const { AUTH, HTTP } = require('../config/constants');
 
 const protect = async (req, res, next) => {
   let token;
 
   //check is there token in header
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (req.headers.authorization && req.headers.authorization.startsWith(AUTH.TOKEN_PREFIX)) {
     try {
       // "Bearer <token>" 
       // break and take 
@@ -31,12 +32,12 @@ const protect = async (req, res, next) => {
 
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, token failed' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, no token' });
   }
 };
 

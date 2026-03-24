@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const Police = require('../models/policeModel');
 const generateToken = require('../utils/generateToken');
 const Driver = require('../models/driverModel');
+const { HTTP, ROLES, AUTH } = require('../config/constants');
 
 // @desc    Request OTP for Police Registration
 // @route   POST /api/auth/request-verification
@@ -16,7 +17,7 @@ const requestVerification = async (req, res) => {
     const station = await Station.findOne({ stationCode });
 
     if (!station) {
-      return res.status(404).json({ message: 'Police Station not found' });
+      return res.status(HTTP.NOT_FOUND).json({ message: 'Police Station not found' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -70,11 +71,11 @@ const requestVerification = async (req, res) => {
       html: htmlMessage,
     });
 
-    res.status(200).json({ success: true, message: `Verification code sent to OIC of ${station.name}` });
+    res.status(HTTP.OK).json({ success: true, message: `Verification code sent to OIC of ${station.name}` });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -87,13 +88,13 @@ const verifyOTP = async (req, res) => {
     const record = await Verification.findOne({ badgeNumber, otp });
 
     if (!record) {
-      return res.status(400).json({ success: false, message: 'Invalid or Expired OTP' });
+      return res.status(HTTP.BAD_REQUEST).json({ success: false, message: 'Invalid or Expired OTP' });
     }
 
-    res.status(200).json({ success: true, message: 'OTP Verified Successfully' });
+    res.status(HTTP.OK).json({ success: true, message: 'OTP Verified Successfully' });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -105,15 +106,15 @@ const registerPolice = async (req, res) => {
   try {
     const verifiedRecord = await Verification.findOne({ badgeNumber, otp });
     if (!verifiedRecord) {
-      return res.status(401).json({ message: 'Unauthorized: Please verify OTP first' });
+      return res.status(HTTP.UNAUTHORIZED).json({ message: 'Unauthorized: Please verify OTP first' });
     }
 
     const officerExists = await Police.findOne({ badgeNumber });
     if (officerExists) {
-      return res.status(400).json({ message: 'Officer already registered' });
+      return res.status(HTTP.BAD_REQUEST).json({ message: 'Officer already registered' });
     }
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(AUTH.BCRYPT_SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const officer = await Police.create({
@@ -132,7 +133,7 @@ const registerPolice = async (req, res) => {
     await Verification.deleteMany({ badgeNumber });
 
     if (officer) {
-      res.status(201).json({
+      res.status(HTTP.CREATED).json({
         success: true,
         _id: officer.id,
         name: officer.name,
@@ -140,12 +141,12 @@ const registerPolice = async (req, res) => {
         token: generateToken(officer.id),
       });
     } else {
-      res.status(400).json({ message: 'Invalid officer data' });
+      res.status(HTTP.BAD_REQUEST).json({ message: 'Invalid officer data' });
     }
 
   } catch (error) {
     console.error("Register Error:", error.message);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -157,10 +158,10 @@ const registerDriver = async (req, res) => {
   try {
     const driverExists = await Driver.findOne({ email });
     if (driverExists) {
-      return res.status(400).json({ message: 'Driver already registered' });
+      return res.status(HTTP.BAD_REQUEST).json({ message: 'Driver already registered' });
     }
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(AUTH.BCRYPT_SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const driver = await Driver.create({
@@ -173,21 +174,21 @@ const registerDriver = async (req, res) => {
     });
 
     if (driver) {
-      res.status(201).json({
+      res.status(HTTP.CREATED).json({
         success: true,
         _id: driver.id,
         name: driver.name,
         email: driver.email,
-        role: 'driver',
+        role: ROLES.DRIVER,
         token: generateToken(driver.id),
       });
     } else {
-      res.status(400).json({ message: 'Invalid driver data' });
+      res.status(HTTP.BAD_REQUEST).json({ message: 'Invalid driver data' });
     }
 
   } catch (error) {
     console.error("Driver Register Error:", error.message);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -204,12 +205,12 @@ const loginUser = async (req, res) => {
     const officer = await Police.findOne({ email });
     if (officer) {
       user = officer;
-      role = officer.role || 'police';
+      role = officer.role || ROLES.POLICE;
     } else {
       const driver = await Driver.findOne({ email });
       if (driver) {
         user = driver;
-        role = 'driver';
+        role = ROLES.DRIVER;
       }
     }
 
@@ -234,10 +235,10 @@ const loginUser = async (req, res) => {
         token: generateToken(user.id),
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(HTTP.UNAUTHORIZED).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -249,17 +250,17 @@ const getMe = async (req, res) => {
     const user = await Police.findById(req.user.id).select('-password');
 
     if (user) {
-      res.status(200).json(user);
+      res.status(HTTP.OK).json(user);
     } else {
       const driver = await Driver.findById(req.user.id).select('-password');
       if (driver) {
-        res.status(200).json(driver);
+        res.status(HTTP.OK).json(driver);
       } else {
-        res.status(404).json({ message: 'User not found' });
+        res.status(HTTP.NOT_FOUND).json({ message: 'User not found' });
       }
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -273,12 +274,12 @@ const verifyDriver = async (req, res) => {
     const driver = await Driver.findOne({ licenseNumber }).select('-password');
 
     if (driver) {
-      res.status(200).json({ success: true, data: driver });
+      res.status(HTTP.OK).json({ success: true, data: driver });
     } else {
-      res.status(404).json({ success: false, message: 'Driver not found' });
+      res.status(HTTP.NOT_FOUND).json({ success: false, message: 'Driver not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -297,14 +298,14 @@ const updateProfileImage = async (req, res) => {
     }
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(HTTP.NOT_FOUND).json({ message: 'User not found' });
     }
 
-    res.status(200).json({ success: true, message: 'Profile image updated successfully' });
+    res.status(HTTP.OK).json({ success: true, message: 'Profile image updated successfully' });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -316,7 +317,7 @@ const forgotPassword = async (req, res) => {
     let user = await Police.findOne({ email });
     if (!user) user = await Driver.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: 'User not found with this email' });
+    if (!user) return res.status(HTTP.NOT_FOUND).json({ message: 'User not found with this email' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await Verification.deleteMany({ badgeNumber: email });
@@ -325,9 +326,9 @@ const forgotPassword = async (req, res) => {
     const message = `You requested a password reset. OTP: ${otp}`;
     await sendEmail({ email: user.email, subject: 'Password Reset Code', message });
 
-    res.status(200).json({ success: true, message: 'OTP sent to email' });
+    res.status(HTTP.OK).json({ success: true, message: 'OTP sent to email' });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -335,10 +336,10 @@ const verifyResetOTP = async (req, res) => {
   const { email, otp } = req.body;
   try {
     const record = await Verification.findOne({ badgeNumber: email, otp });
-    if (!record) return res.status(400).json({ success: false, message: 'Invalid OTP' });
-    res.status(200).json({ success: true, message: 'OTP Verified' });
+    if (!record) return res.status(HTTP.BAD_REQUEST).json({ success: false, message: 'Invalid OTP' });
+    res.status(HTTP.OK).json({ success: true, message: 'OTP Verified' });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 
@@ -346,9 +347,9 @@ const resetPassword = async (req, res) => {
   const { email, newPassword, otp } = req.body;
   try {
     const record = await Verification.findOne({ badgeNumber: email, otp });
-    if (!record) return res.status(400).json({ message: 'Invalid OTP' });
+    if (!record) return res.status(HTTP.BAD_REQUEST).json({ message: 'Invalid OTP' });
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(AUTH.BCRYPT_SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     let updated = await Police.findOneAndUpdate({ email }, { password: hashedPassword });
@@ -356,12 +357,12 @@ const resetPassword = async (req, res) => {
 
     if (updated) {
       await Verification.deleteMany({ badgeNumber: email });
-      res.status(200).json({ success: true, message: 'Password Reset Successful' });
+      res.status(HTTP.OK).json({ success: true, message: 'Password Reset Successful' });
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(HTTP.NOT_FOUND).json({ message: 'User not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };
 

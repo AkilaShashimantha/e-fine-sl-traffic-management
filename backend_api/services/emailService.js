@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { APP, LICENSE_STATUS, EMAIL } = require('../config/constants');
 
 /**
  * Creates a reusable nodemailer transporter.
@@ -32,11 +33,11 @@ const formatDate = (date) => {
 const sendLicenseStatusEmail = async (driver, newStatus) => {
   const transporter = createTransporter();
   const today = formatDate(new Date());
-  const isActive = newStatus === 'ACTIVE';
+  const isActive = newStatus === LICENSE_STATUS.ACTIVE;
 
   const subject = isActive
-    ? '✅ Your Driving License Has Been Activated — e-Fine SL'
-    : '🚫 Your Driving License Has Been Suspended — e-Fine SL';
+    ? EMAIL.SUBJECTS.LICENSE_ACTIVATED
+    : EMAIL.SUBJECTS.LICENSE_SUSPENDED;
 
   const html = isActive
     ? buildActivationEmail(driver, today)
@@ -64,7 +65,7 @@ function buildActivationEmail(driver, today) {
   <!-- HEADER -->
   <tr>
     <td style="background:#4CAF50;padding:30px 40px 50px;text-align:center;">
-      <h1 style="margin:0;color:#ffffff;font-size:26px;letter-spacing:1px;">e-Fine SL</h1>
+      <h1 style="margin:0;color:#ffffff;font-size:26px;letter-spacing:1px;">${APP.NAME}</h1>
       <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Sri Lanka Traffic Fine Management System</p>
     </td>
   </tr>
@@ -131,7 +132,7 @@ function buildSuspensionEmail(driver, today) {
   <!-- HEADER -->
   <tr>
     <td style="background:#F44336;padding:30px 40px 50px;text-align:center;">
-      <h1 style="margin:0;color:#ffffff;font-size:26px;letter-spacing:1px;">e-Fine SL</h1>
+      <h1 style="margin:0;color:#ffffff;font-size:26px;letter-spacing:1px;">${APP.NAME}</h1>
       <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Sri Lanka Traffic Fine Management System</p>
     </td>
   </tr>

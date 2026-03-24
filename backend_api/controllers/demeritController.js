@@ -1,5 +1,6 @@
 const Driver = require('../models/driverModel');
 const Offense = require('../models/offenseModel');
+const { HTTP, DEMERIT, LICENSE_STATUS } = require('../config/constants');
 
 /**
  * Calculates the demerit level tag based on current points.
@@ -7,7 +8,7 @@ const Offense = require('../models/offenseModel');
  * @returns {string} GOOD | WARNING | DANGER | SUSPENDED
  */
 function calculateLevel(points) {
-  if (points <= 0) return 'SUSPENDED';
+  if (points <= DEMERIT.SUSPENSION_THRESHOLD) return LICENSE_STATUS.SUSPENDED;
   if (points <= 39) return 'DANGER';
   if (points <= 69) return 'WARNING';
   return 'GOOD';
@@ -34,8 +35,8 @@ exports.applyDemeritPoints = async (licenseNumber, offenseId) => {
   driver.demeritLevel = calculateLevel(driver.demeritPoints);
 
   // Check for suspension threshold
-  if (driver.demeritPoints <= 0 && driver.licenseStatus !== 'SUSPENDED') {
-    driver.licenseStatus = 'SUSPENDED';
+  if (driver.demeritPoints <= DEMERIT.SUSPENSION_THRESHOLD && driver.licenseStatus !== LICENSE_STATUS.SUSPENDED) {
+    driver.licenseStatus = LICENSE_STATUS.SUSPENDED;
     driver.suspendedAt = new Date();
   }
 
@@ -59,7 +60,7 @@ exports.getDriverStatus = async (req, res) => {
       .select('demeritPoints licenseStatus demeritLevel suspendedAt');
 
     if (!driver) {
-      return res.status(404).json({ message: 'Driver not found' });
+      return res.status(HTTP.NOT_FOUND).json({ message: 'Driver not found' });
     }
 
     res.json({
@@ -69,6 +70,6 @@ exports.getDriverStatus = async (req, res) => {
       suspendedAt: driver.suspendedAt,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(HTTP.SERVER_ERROR).json({ message: err.message });
   }
 };
