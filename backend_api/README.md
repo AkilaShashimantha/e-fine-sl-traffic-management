@@ -31,6 +31,12 @@
 - **Description:** Fetches the fine issuance history.
 - **Query Param:** `policeOfficerId` (optional, to filter by officer).
 
+### 📉 Demerit System (New!)
+
+- **Automated Deduction:** Points are automatically deducted when a fine is issued.
+- **Cron Job Reset:** Monthly recurring cron job auto-reinstates suspended licenses.
+- **`GET /api/drivers/:licenseNumber/status`**: Fetches real-time demerit points and suspension status.
+
 ### 🔐 Authentication & Profile
 
 **`POST /api/auth/login` (Updated)**
@@ -71,7 +77,6 @@
 
 ## Future Plans & Roadmap
 
-- **📉 Demerit System:** Logic to automatically deduct points upon fine issuance/payment.
 - **📱 SMS Notifications:** Send SMS to drivers when a fine is issued.
 
 ## Database Models

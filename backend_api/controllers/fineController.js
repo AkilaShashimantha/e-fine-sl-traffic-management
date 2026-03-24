@@ -1,5 +1,6 @@
 const Offense = require('../models/offenseModel');
 const IssuedFine = require('../models/issuedFineModel');
+const { applyDemeritPoints } = require('./demeritController');
 
 // @desc    Get all fine types / offenses
 // @route   GET /api/fines/offenses
@@ -45,7 +46,18 @@ const issueFine = async (req, res) => {
       date: date || Date.now() // Use provided date or default to now
     });
 
-    res.status(201).json(fine);
+    let demeritResult = null;
+    try {
+      demeritResult = await applyDemeritPoints(licenseNumber, offenseId);
+    } catch (demeritErr) {
+      console.error('[Demerit] Failed to apply points:', demeritErr.message);
+    }
+
+    res.status(201).json({
+      message: 'Fine issued successfully',
+      fine,
+      demeritResult,
+    });
   } catch (error) {
     console.error("Error issuing fine:", error);
     res.status(500).json({ message: 'Failed to issue fine', error: error.message });

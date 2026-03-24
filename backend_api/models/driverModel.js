@@ -11,8 +11,9 @@ const driverSchema = mongoose.Schema(
     role: { type: String, default: 'driver' }, // 'driver'
     
     // (Demerit Points)
-    demeritPoints: { type: Number, default: 0 }, 
-    licenseStatus: { type: String, enum: ['Active', 'Suspended'], default: 'Active' },
+    demeritPoints: { type: Number, default: 100 }, 
+    licenseStatus: { type: String, enum: ['ACTIVE', 'SUSPENDED'], default: 'ACTIVE' },
+    suspendedAt: { type: Date, default: null },
 
     isVerified: { type: Boolean, default: false },
     // ...

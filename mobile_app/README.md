@@ -29,7 +29,7 @@
 
 ### 🚗 Dynamic Driver Dashboard
 
-- **Real-time Demerit Point Meter:** Visualizes current driver points and status (Excellent/Warning/Risk).
+- **Real-time Demerit Point Meter:** Visualizes true driver demerit points and Active/Suspended license status fetched directly from the backend.
 - **Pending Fine Alert:** A conditional red warning box that appears on the home screen only when there are unpaid fines.
 - **Dynamic Greetings:** Welcomes the driver based on the time of day.
 

@@ -16,6 +16,7 @@ This repository contains the complete source code for the e-Fine SL Traffic Mana
 - **Role-Based Access:** Distinct features for Drivers and Traffic Police.
 - **Online Payments:** Full integration with **PayHere** Sandbox for paying fines.
 - **Real-time Notifications:** Alerts for new fines with Officer ID and timestamps.
+- **Demerit Status Card:** Real-time driver demerit points and license suspension status visualization.
 - **Payment History:** Detailed history screen with Reference ID copy feature.
 - **License Scanning:** Google ML Kit OCR for Driver License scanning.
 - **Localization:** English & Sinhala support.
@@ -25,6 +26,7 @@ This repository contains the complete source code for the e-Fine SL Traffic Mana
 - **Secure Authentication:** JWT-based auth with OTP verification.
 - **Payment Security:** Secure MD5 hash generation for PayHere.
 - **Fine Management:** Endpoints for issuing, fetching, and paying fines.
+- **Automated Demerit System:** Auto-deduction of points on fine issuance and monthly cron job reinstatement.
 - **Database:** MongoDB (Mongoose) schema for Users, Fines, and Offenses.
 
 ## How to Run
@@ -34,7 +36,6 @@ This repository contains the complete source code for the e-Fine SL Traffic Mana
 ## Next Steps / Roadmap
 
 - **📷 Vehicle Number OCR:** Implement OCR scanning for vehicle number plates (Police side).
-- **📉 Demerit System:** Auto-calculation of demerit points.
 - **📨 SMS Alerts:** Integration with SMS gateway for offline notifications.
 - **🎨 UI Enhancements:** Continued UI/UX improvements.
 
