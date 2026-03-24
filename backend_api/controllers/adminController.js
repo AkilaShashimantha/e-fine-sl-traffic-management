@@ -308,10 +308,10 @@ const getDashboardStats = async (req, res) => {
         const totalDrivers = await Driver.countDocuments();
 
         // Active drivers
-        const activeDrivers = await Driver.countDocuments({ licenseStatus: 'Active' });
+        const activeDrivers = await Driver.countDocuments({ licenseStatus: 'ACTIVE' });
 
         // Suspended drivers
-        const suspendedDrivers = await Driver.countDocuments({ licenseStatus: 'Suspended' });
+        const suspendedDrivers = await Driver.countDocuments({ licenseStatus: 'SUSPENDED' });
 
         // Total police officers
         const totalOfficers = await Police.countDocuments();
@@ -448,12 +448,14 @@ const suspendDriver = async (req, res) => {
             return res.status(404).json({ message: 'Driver not found' });
         }
 
-        if (driver.licenseStatus === 'Suspended') {
+        if (driver.licenseStatus === 'SUSPENDED') {
             return res.status(400).json({ message: 'License is already suspended' });
         }
 
         // Update license status
-        driver.licenseStatus = 'Suspended';
+        driver.licenseStatus = 'SUSPENDED';
+        driver.demeritLevel = 'SUSPENDED';
+        driver.suspendedAt = new Date();
         await driver.save();
 
         // Send email notification (optional)
@@ -512,12 +514,15 @@ const activateDriver = async (req, res) => {
             return res.status(404).json({ message: 'Driver not found' });
         }
 
-        if (driver.licenseStatus === 'Active') {
+        if (driver.licenseStatus === 'ACTIVE') {
             return res.status(400).json({ message: 'License is already active' });
         }
 
         // Update license status
-        driver.licenseStatus = 'Active';
+        driver.licenseStatus = 'ACTIVE';
+        driver.demeritPoints = 50;
+        driver.demeritLevel = 'WARNING';
+        driver.suspendedAt = null;
         await driver.save();
 
         // Send email notification (optional)
