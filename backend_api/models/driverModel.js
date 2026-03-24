@@ -13,6 +13,7 @@ const driverSchema = mongoose.Schema(
     // (Demerit Points)
     demeritPoints: { type: Number, default: 100 }, 
     licenseStatus: { type: String, enum: ['ACTIVE', 'SUSPENDED'], default: 'ACTIVE' },
+    demeritLevel: { type: String, enum: ['GOOD', 'WARNING', 'DANGER', 'SUSPENDED'], default: 'GOOD' },
     suspendedAt: { type: Date, default: null },
 
     isVerified: { type: Boolean, default: false },

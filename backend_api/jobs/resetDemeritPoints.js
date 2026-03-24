@@ -16,6 +16,7 @@ cron.schedule('0 0 1 * *', async () => {
         $set: {
           demeritPoints: 50,         // partial restore on reinstatement
           licenseStatus: 'ACTIVE',
+          demeritLevel:  'WARNING',  // 50 pts = Warning range (40–69)
           suspendedAt:   null,
         },
       }

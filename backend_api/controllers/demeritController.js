@@ -2,6 +2,18 @@ const Driver = require('../models/driverModel');
 const Offense = require('../models/offenseModel');
 
 /**
+ * Calculates the demerit level tag based on current points.
+ * @param {number} points - Current demerit points (0–100)
+ * @returns {string} GOOD | WARNING | DANGER | SUSPENDED
+ */
+function calculateLevel(points) {
+  if (points <= 0) return 'SUSPENDED';
+  if (points <= 39) return 'DANGER';
+  if (points <= 69) return 'WARNING';
+  return 'GOOD';
+}
+
+/**
  * Deducts demerit points after a fine is issued.
  * @param {string} licenseNumber - License Number of the driver
  * @param {string} offenseId - MongoDB ObjectId of the offense
@@ -18,6 +30,9 @@ exports.applyDemeritPoints = async (licenseNumber, offenseId) => {
   // Deduct points — floor at 0
   driver.demeritPoints = Math.max(0, driver.demeritPoints - offense.demeritValue);
 
+  // Update the level tag
+  driver.demeritLevel = calculateLevel(driver.demeritPoints);
+
   // Check for suspension threshold
   if (driver.demeritPoints <= 0 && driver.licenseStatus !== 'SUSPENDED') {
     driver.licenseStatus = 'SUSPENDED';
@@ -29,6 +44,7 @@ exports.applyDemeritPoints = async (licenseNumber, offenseId) => {
   return {
     remainingPoints: driver.demeritPoints,
     status: driver.licenseStatus,
+    demeritLevel: driver.demeritLevel,
     deducted: offense.demeritValue,
   };
 };
@@ -40,7 +56,7 @@ exports.applyDemeritPoints = async (licenseNumber, offenseId) => {
 exports.getDriverStatus = async (req, res) => {
   try {
     const driver = await Driver.findOne({ licenseNumber: req.params.licenseNumber })
-      .select('demeritPoints licenseStatus suspendedAt');
+      .select('demeritPoints licenseStatus demeritLevel suspendedAt');
 
     if (!driver) {
       return res.status(404).json({ message: 'Driver not found' });
@@ -49,6 +65,7 @@ exports.getDriverStatus = async (req, res) => {
     res.json({
       demeritPoints: driver.demeritPoints,
       licenseStatus: driver.licenseStatus,
+      demeritLevel: driver.demeritLevel,
       suspendedAt: driver.suspendedAt,
     });
   } catch (err) {

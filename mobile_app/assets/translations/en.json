@@ -39,6 +39,15 @@
   "active_license": "Active License",
   "suspended_license": "LICENSE SUSPENDED",
   "residential_address": "Residential Address",
-  "postal": "Postal"
+  "postal": "Postal",
+
+  "demerit_title": "Driver Rating Status",
+  "demerit_points_label": "Points",
+  "demerit_good": "Good Standing",
+  "demerit_warning": "Warning Level",
+  "demerit_danger": "Danger Level",
+  "demerit_suspended": "SUSPENDED",
+  "demerit_suspended_on": "Since {}",
+  "demerit_reinstate_info": "Your license will be reinstated on the 1st of next month."
 
 }
