@@ -205,8 +205,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
   }
 
   // ── Grouping ──────────────────────────────────────────────────────
-  /// Returns a list of entries, each being either a header String
-  /// or a Map<String,dynamic> fine item.
+  /// Returns a list of entries, each being either a header [String]
+  /// or a `Map<String, dynamic>` fine item.
   List<dynamic> _buildGroupedList() {
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (final f in _filteredHistory) {
