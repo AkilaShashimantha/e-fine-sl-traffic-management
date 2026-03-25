@@ -91,8 +91,9 @@ const getDriverPendingFines = async (req, res) => {
       return res.status(HTTP.BAD_REQUEST).json({ message: 'License number is required' });
     }
 
+    // Case-insensitive match to handle different capitalization
     const fines = await IssuedFine.find({
-      licenseNumber: licenseNumber,
+      licenseNumber: { $regex: new RegExp(`^${licenseNumber}$`, 'i') },
       status: { $in: [PAYMENT.STATUS.UNPAID, PAYMENT.STATUS.PENDING] }
     }).sort({ createdAt: -1 });
 
@@ -141,8 +142,9 @@ const getDriverPaidHistory = async (req, res) => {
       return res.status(HTTP.BAD_REQUEST).json({ message: 'License number is required' });
     }
 
+    // Case-insensitive match to handle different capitalization
     const fines = await IssuedFine.find({
-      licenseNumber: licenseNumber,
+      licenseNumber: { $regex: new RegExp(`^${licenseNumber}$`, 'i') },
       status: PAYMENT.STATUS.PAID
     }).sort({ paidAt: -1 });
 
