@@ -297,8 +297,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: InkWell(
-                  onTap: () {
-                     _scaffoldKey.currentState?.openEndDrawer(); // Tap to open notifications
+                  onTap: () async {
+                    if (_notifications.isEmpty) return;
+                    bool? result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PayFineScreen(fine: _notifications.first),
+                      ),
+                    );
+                    if (result == true) _refreshData();
                   },
                   child: Container(
                     padding: const EdgeInsets.all(15),
@@ -357,9 +364,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  _buildActionCard(Icons.payment, "pay_fines".tr(), Colors.orange, () {
-                      // Open drawer to select fine to pay
-                      _scaffoldKey.currentState?.openEndDrawer();
+                  _buildActionCard(Icons.payment, "pay_fines".tr(), Colors.orange, () async {
+                      if (_notifications.isEmpty) return;
+                      bool? result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PayFineScreen(fine: _notifications.first),
+                        ),
+                      );
+                      if (result == true) _refreshData();
                   }),
                   _buildActionCard(Icons.history, "history".tr(), Colors.blue, () { 
                       Navigator.push(
