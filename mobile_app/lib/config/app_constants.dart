@@ -33,9 +33,9 @@ class UserRoles {
 class AppStatus {
   static const String active    = 'ACTIVE';
   static const String suspended = 'SUSPENDED';
-  static const String paid      = 'Paid';
-  static const String unpaid    = 'Unpaid';
-  static const String pending   = 'Pending';
+  static const String paid      = 'PAID';    // Must match backend exactly
+  static const String unpaid    = 'UNPAID';  // Must match backend exactly
+  static const String pending   = 'PENDING'; // Must match backend exactly
   static const String currency  = 'LKR';
 }
 

@@ -110,35 +110,11 @@ class FineService {
   // 4. Get Pending Fines (Driver)
   // ----------------------------------------------------------------
   Future<List<Map<String, dynamic>>> getDriverPendingFines() async {
-     try {
+    try {
       String? token = await _storage.read(key: PrefKeys.authToken);
-      // When Driver logs in, licenseNumber must be saved from AuthService.
-      // Otherwise, we cannot extract it here.
-      // For now, let's assume it has been saved by AuthService.
-      // * Hint: Save licenseNumber inside storage during Login.
+      String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum);
       
-      // However, extracting the profile details from the user object right away is preferred.
-      // We can also fetch it using getUserProfile() from AuthService.
-      // But saving it purely during Login is the easiest approach.
-      
-      // Let's attempt to use the user profile here.
-      // Final authService definition removed as it was unused.
-      // The most optimal logic is to retrieve what was saved during Login.
-      
-      // * Correction in AuthService: Save License Number on Login
-      
-      // Let's assume we saved it as 'licenseNumber'
-      String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum); // * Make sure to save this in AuthService login!
-      
-       if (token == null ) {
-         return [];
-       }
-       
-       if(licenseNumber == null) {
-          // If not in storage, fetch profile
-           // This is a fail-safe
-           return [];
-       }
+      if (token == null || licenseNumber == null) return [];
 
       final uri = Uri.parse('$baseUrl/fines/pending').replace(queryParameters: {
         'licenseNumber': licenseNumber,
@@ -153,23 +129,53 @@ class FineService {
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
+        List<dynamic> data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data);
-      } else {
-        return [];
       }
+      return [];
     } catch (e) {
+      debugPrint("Error fetching pending fines: $e");
       return [];
     }
+  }
+
+  // Internal helper for fetching fines with any endpoint + query params
+  Future<List<Map<String, dynamic>>> _fetchFinesInternal({
+    required String endpoint,
+    required String token,
+    required String queryKey,
+    required String queryValue,
+  }) async {
+    final uri = Uri.parse('$baseUrl/fines/$endpoint').replace(queryParameters: {
+      queryKey: queryValue,
+    });
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data);
+    }
+    return [];
   }
 
   // Mark Fine as Paid
   Future<bool> payFine(String fineId, String paymentId) async {
     final url = Uri.parse('$baseUrl/fines/$fineId/pay');
     try {
+      String? token = await _storage.read(key: PrefKeys.authToken);
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'paymentId': paymentId}),
       );
 
@@ -185,20 +191,32 @@ class FineService {
     }
   }
 
-  // Get Paid History
   Future<List<Map<String, dynamic>>> getDriverPaidFines() async {
-    String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum); // Correct Key
-    if (licenseNumber == null) return [];
-
-    final url = Uri.parse('$baseUrl/fines/driver-history?licenseNumber=$licenseNumber');
     try {
-      final response = await http.get(url, headers: {'Content-Type': 'application/json'});
+      String? token = await _storage.read(key: PrefKeys.authToken);
+      String? licenseNumber = await _storage.read(key: PrefKeys.licenseNum);
+      
+      if (token == null || licenseNumber == null) return [];
 
-      if (response.statusCode == 200) {
-        return List<Map<String, dynamic>>.from(json.decode(response.body));
-      } else {
-        return [];
+      // Try with 'licenseNumber' first
+      List<Map<String, dynamic>> results = await _fetchFinesInternal(
+        endpoint: 'driver-history',
+        token: token,
+        queryKey: 'licenseNumber',
+        queryValue: licenseNumber,
+      );
+
+      // Fallback to 'licenseNo'
+      if (results.isEmpty) {
+        results = await _fetchFinesInternal(
+          endpoint: 'driver-history',
+          token: token,
+          queryKey: 'licenseNo',
+          queryValue: licenseNumber,
+        );
       }
+
+      return results;
     } catch (e) {
       debugPrint("Error fetching history: $e");
       return [];
