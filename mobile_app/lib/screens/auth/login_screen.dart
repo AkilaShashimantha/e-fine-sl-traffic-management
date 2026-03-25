@@ -94,7 +94,7 @@ Future<void> _handleLogin() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -108,18 +108,18 @@ Future<void> _handleLogin() async {
               ),
               const SizedBox(height: 10),
               
-              const Text(
+              Text(
                 "E-Fine SL",
-                style: TextStyle(fontSize: 20, color: Colors.black54),
+                style: TextStyle(fontSize: 20, color: AppTheme.textSecondary(context)),
               ),
               const SizedBox(height: 30),
 
-              const Text(
+              Text(
                 "Welcome Back",
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppTheme.textPrimary(context),
                 ),
               ),
               const SizedBox(height: 40),
@@ -128,16 +128,16 @@ Future<void> _handleLogin() async {
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  hintText: "Email Address",
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    hintText: "Email Address",
+                    filled: true,
+                    fillColor: AppTheme.inputFill(context),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
-                ),
               ),
               const SizedBox(height: 16),
 
@@ -157,9 +157,9 @@ Future<void> _handleLogin() async {
                       });
                     },
                   ),
-                  hintText: "Password",
-                  filled: true,
-                  fillColor: Colors.grey[100],
+                    hintText: "Password",
+                    filled: true,
+                    fillColor: AppTheme.inputFill(context),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -196,14 +196,14 @@ Future<void> _handleLogin() async {
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()));
                 },
-                child: const Text("Forgot Password?", style: TextStyle(color: Colors.black54)),
+                child: Text("Forgot Password?", style: TextStyle(color: AppTheme.textSecondary(context))),
               ),
 
               // Register Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account? "),
+                  Text("Don't have an account? ", style: TextStyle(color: AppTheme.textSecondary(context))),
                   GestureDetector(
                     onTap: () {
                        // Navigate to Police Registration

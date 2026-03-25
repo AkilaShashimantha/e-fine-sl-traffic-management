@@ -62,14 +62,40 @@ class EFineApp extends StatelessWidget {
              primaryColor: AppColors.primaryGreenDark,
              scaffoldBackgroundColor: const Color(0xFF121212),
              cardColor: const Color(0xFF1E1E1E),
-             colorScheme: ColorScheme.dark(
-               primary: AppColors.primaryGreenDark, 
+             colorScheme: const ColorScheme.dark(
+               primary: AppColors.primaryGreenDark,
                secondary: AppColors.primaryGreenLight,
-               surface: const Color(0xFF1E1E1E),
+               surface: Color(0xFF1E1E1E),
+               onSurface: Colors.white,
              ),
              appBarTheme: const AppBarTheme(
                backgroundColor: AppColors.primaryGreenDark,
                foregroundColor: Colors.white,
+             ),
+             inputDecorationTheme: InputDecorationTheme(
+               filled: true,
+               fillColor: const Color(0xFF2C2C2C),
+               labelStyle: const TextStyle(color: Colors.white70),
+               hintStyle: const TextStyle(color: Colors.white38),
+               prefixIconColor: Colors.white60,
+               suffixIconColor: Colors.white60,
+               border: OutlineInputBorder(
+                 borderRadius: BorderRadius.circular(12),
+                 borderSide: const BorderSide(color: Color(0xFF3A3A3A)),
+               ),
+               enabledBorder: OutlineInputBorder(
+                 borderRadius: BorderRadius.circular(12),
+                 borderSide: const BorderSide(color: Color(0xFF3A3A3A)),
+               ),
+               focusedBorder: OutlineInputBorder(
+                 borderRadius: BorderRadius.circular(12),
+                 borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+               ),
+             ),
+             cardTheme: CardThemeData(
+               color: const Color(0xFF1E1E1E),
+               elevation: 2,
+               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
              ),
              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                selectedItemColor: AppColors.primaryGreenLight,

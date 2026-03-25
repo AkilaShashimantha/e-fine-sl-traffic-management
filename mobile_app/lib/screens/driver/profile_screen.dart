@@ -317,17 +317,25 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildClassChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.green[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green[200]!),
-      ),
-      child: Text(
-        label, 
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[800]),
-      ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.primaryGreenDark.withValues(alpha: 0.25) : AppColors.primaryGreenLight.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isDark ? AppColors.primaryGreen : AppColors.primaryGreenDark.withValues(alpha: 0.4)),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.primaryGreenLight : AppColors.primaryGreenDark,
+            ),
+          ),
+        );
+      },
     );
   }
 
