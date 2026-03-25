@@ -43,7 +43,7 @@ class _PayFineScreenState extends State<PayFineScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(color: Colors.grey.withAlpha(26), blurRadius: 10, spreadRadius: 2)

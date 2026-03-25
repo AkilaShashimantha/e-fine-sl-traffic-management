@@ -310,7 +310,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: AppColors.errorBg, 
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.errorRed.withAlpha(40)
+                          : AppColors.errorBg, 
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: AppColors.errorRed.withAlpha((0.5 * 255).toInt())),
                     ),
@@ -328,7 +330,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                               ),
                               Text(
                                 "unpaid_msg".tr(),
-                                style: const TextStyle(color: Colors.black54, fontSize: 12),
+                                style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
                               ),
                             ],
                           ),
@@ -413,8 +415,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   // --- Professional Notification Drawer ---
   Widget _buildNotificationDrawer() {
     return Drawer(
-      width: MediaQuery.of(context).size.width * 0.85, // 85% width
-      backgroundColor: Colors.white,
+      width: MediaQuery.of(context).size.width * 0.85,
+      backgroundColor: AppTheme.drawerBackground(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(topLeft: Radius.circular(0), bottomLeft: Radius.circular(0)),
       ),
@@ -466,12 +468,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
-                          color: isRead ? Colors.white : AppColors.errorBg, // Highlight unread
+                          color: isRead ? AppTheme.cardBackground(context) : AppColors.errorBg,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(color: Colors.grey.withAlpha(26), spreadRadius: 1, blurRadius: 5)
                           ],
-                          border: Border(left: BorderSide(color: isRead ? Colors.grey[300]! : AppColors.errorRed, width: 4))
+                          border: Border(left: BorderSide(color: isRead ? AppTheme.divider(context) : AppColors.errorRed, width: 4))
                         ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
@@ -498,7 +500,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 5),
-                              Text("Amount: LKR ${fine['amount']}", style: const TextStyle(color: Colors.black87)),
+                              Text("Amount: LKR ${fine['amount']}", style: TextStyle(color: AppTheme.textPrimary(context))),
                               const SizedBox(height: 5),
                               
                               // Officer ID Row
@@ -546,7 +548,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     }
                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: AppTheme.cardBackground(context),
                               foregroundColor: AppColors.errorRed,
                               elevation: 0,
                               side: const BorderSide(color: AppColors.errorRed),

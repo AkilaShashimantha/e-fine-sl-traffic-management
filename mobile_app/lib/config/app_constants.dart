@@ -158,3 +158,43 @@ class DemeritLevel {
     return AppColors.dangerLevel;
   }
 }
+
+// ── THEME-AWARE COLOR HELPERS ─────────────────────────
+// Use these instead of hardcoded Colors.white / Colors.black54 etc.
+// so every screen automatically adapts when the theme changes.
+class AppTheme {
+  static bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  /// Card / container background (white in light, dark card in dark)
+  static Color cardBackground(BuildContext context) =>
+      Theme.of(context).cardColor;
+
+  /// Input field fill colour (light grey in light, dark grey in dark)
+  static Color inputFill(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF2C2C2C) : const Color(0xFFF2F2F2);
+
+  /// Strong primary text (black87 / white)
+  static Color textPrimary(BuildContext context) =>
+      _isDark(context) ? Colors.white : const Color(0xDD000000); // black87
+
+  /// Soft secondary text (black54 / white70)
+  static Color textSecondary(BuildContext context) =>
+      _isDark(context) ? Colors.white70 : Colors.black54;
+
+  /// Hint / muted text (black38 / white38)
+  static Color textHint(BuildContext context) =>
+      _isDark(context) ? Colors.white38 : Colors.black38;
+
+  /// Surface / drawer background (white / 0xFF1E1E1E)
+  static Color drawerBackground(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF1E1E1E) : Colors.white;
+
+  /// Gauge track colour for the demerit arc background
+  static Color gaugeTrack(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF3A3A3A) : Colors.grey.shade200;
+
+  /// Divider colour
+  static Color divider(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF3A3A3A) : const Color(0xFFEEEEEE);
+}

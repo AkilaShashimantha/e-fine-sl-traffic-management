@@ -229,7 +229,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Payment History',
@@ -270,7 +270,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
       padding: const EdgeInsets.symmetric(
           vertical: AppSpacing.md, horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.cardWhite,
+        color: AppTheme.cardBackground(context),
         borderRadius: BorderRadius.circular(AppRadius.medium),
         boxShadow: [
           BoxShadow(
@@ -317,10 +317,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: AppTextSize.bodyMedium,
-              color: AppColors.textPrimary,
+              color: AppTheme.textPrimary(context),
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -330,7 +330,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
             label,
             style: TextStyle(
               fontSize: AppTextSize.caption,
-              color: Colors.grey[500],
+              color: AppTheme.textHint(context),
             ),
           ),
         ],
@@ -348,12 +348,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
         decoration: InputDecoration(
           hintText: 'Search by offense, location or ref ID...',
           hintStyle:
-              TextStyle(color: Colors.grey[400], fontSize: AppTextSize.bodyMedium),
-          prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+              TextStyle(color: AppTheme.textHint(context), fontSize: AppTextSize.bodyMedium),
+          prefixIcon: Icon(Icons.search, color: AppTheme.textHint(context)),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
-                  color: Colors.grey[400],
+                  color: AppTheme.textHint(context),
                   onPressed: () {
                     _searchController.clear();
                     _applyFilters();
@@ -361,16 +361,16 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
                 )
               : null,
           filled: true,
-          fillColor: AppColors.cardWhite,
+          fillColor: AppTheme.inputFill(context),
           contentPadding:
               const EdgeInsets.symmetric(vertical: 0, horizontal: AppSpacing.md),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+            borderSide: BorderSide(color: AppTheme.divider(context)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+            borderSide: BorderSide(color: AppTheme.divider(context)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -463,10 +463,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
           padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm + 2, vertical: 0),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryGreen : AppColors.cardWhite,
+            color: selected ? AppColors.primaryGreen : AppTheme.cardBackground(context),
             borderRadius: BorderRadius.circular(AppRadius.circle),
             border: Border.all(
-              color: selected ? AppColors.primaryGreen : Colors.grey[300]!,
+              color: selected ? AppColors.primaryGreen : AppTheme.divider(context),
             ),
           ),
           child: Row(
@@ -482,7 +482,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
                   fontSize: AppTextSize.bodySmall,
                   fontWeight:
                       selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? Colors.white : Colors.grey[700],
+                  color: selected ? Colors.white : AppTheme.textSecondary(context),
                 ),
               ),
             ],
@@ -503,7 +503,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
           'Showing ${_filteredHistory.length} of ${_history.length} payments',
           style: TextStyle(
             fontSize: AppTextSize.bodySmall,
-            color: Colors.grey[500],
+            color: AppTheme.textHint(context),
           ),
         ),
       ),
@@ -556,20 +556,20 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
           top: AppSpacing.sm, bottom: AppSpacing.sm),
       child: Row(
         children: [
-          Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+          Expanded(child: Divider(color: AppTheme.divider(context), thickness: 1)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Text(
               '$month  ·  $count ${count == 1 ? 'payment' : 'payments'}',
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.grey[500],
+                color: AppTheme.textHint(context),
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
             ),
           ),
-          Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
+          Expanded(child: Divider(color: AppTheme.divider(context), thickness: 1)),
         ],
       ),
     );
@@ -613,10 +613,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
           const SizedBox(height: AppSpacing.md),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: AppTextSize.bodyLarge,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -625,7 +625,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
             child: Text(
               subtitle,
               style: TextStyle(
-                  fontSize: AppTextSize.bodyMedium, color: Colors.grey[500]),
+                  fontSize: AppTextSize.bodyMedium, color: AppTheme.textHint(context)),
               textAlign: TextAlign.center,
             ),
           ),
@@ -665,7 +665,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.cardWhite,
+        color: AppTheme.cardBackground(context),
         borderRadius: BorderRadius.circular(AppRadius.large),
         boxShadow: [
           BoxShadow(
@@ -744,13 +744,21 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen>
             gradient: LinearGradient(
               begin: Alignment(_shimmerAnim.value - 1, 0),
               end: Alignment(_shimmerAnim.value, 0),
-              colors: const [
-                Color(0xFFEEEEEE),
-                Color(0xFFF5F5F5),
-                Color(0xFFE0E0E0),
-                Color(0xFFF5F5F5),
-                Color(0xFFEEEEEE),
-              ],
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? const [
+                      Color(0xFF2A2A2A),
+                      Color(0xFF3A3A3A),
+                      Color(0xFF2E2E2E),
+                      Color(0xFF3A3A3A),
+                      Color(0xFF2A2A2A),
+                    ]
+                  : const [
+                      Color(0xFFEEEEEE),
+                      Color(0xFFF5F5F5),
+                      Color(0xFFE0E0E0),
+                      Color(0xFFF5F5F5),
+                      Color(0xFFEEEEEE),
+                    ],
               stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
             ),
           ),

@@ -146,7 +146,7 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
             const SizedBox(height: 10),
             const Text(
               "Create Driver Account",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 25),
 

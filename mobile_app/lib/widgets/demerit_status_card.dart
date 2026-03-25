@@ -9,8 +9,9 @@ import '../config/app_constants.dart';
 class _GaugeArcPainter extends CustomPainter {
   final double progress; // 0.0 → 1.0
   final Color arcColor;
+  final Color trackColor;
 
-  _GaugeArcPainter({required this.progress, required this.arcColor});
+  _GaugeArcPainter({required this.progress, required this.arcColor, required this.trackColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -22,7 +23,7 @@ class _GaugeArcPainter extends CustomPainter {
 
     // Background track
     final bgPaint = Paint()
-      ..color = Colors.grey.shade200
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 18
       ..strokeCap = StrokeCap.round;
@@ -55,7 +56,7 @@ class _GaugeArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GaugeArcPainter old) =>
-      old.progress != progress || old.arcColor != arcColor;
+      old.progress != progress || old.arcColor != arcColor || old.trackColor != trackColor;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,7 +138,7 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -152,10 +153,10 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
             // ── Title ──────────────────────────────────────
             Text(
               'demerit_title'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black54,
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
             ),
 
@@ -178,6 +179,7 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
                         painter: _GaugeArcPainter(
                           progress: _animation.value,
                           arcColor: animColor,
+                          trackColor: AppTheme.gaugeTrack(context),
                         ),
                       ),
                       Column(
@@ -224,7 +226,7 @@ class _DemeritStatusCardState extends State<DemeritStatusCard>
               const SizedBox(height: 4),
               Text(
                 'demerit_suspended_on'.tr(args: [_formatDate(widget.suspendedAt!)]),
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
+                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context)),
               ),
             ],
 

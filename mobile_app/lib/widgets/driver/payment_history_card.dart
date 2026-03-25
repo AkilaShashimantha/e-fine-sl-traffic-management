@@ -16,6 +16,7 @@ class PaymentHistoryCard extends StatelessWidget {
 
   // ── Chip builder ───────────────────────────────────────────────
   Widget _infoChip({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
@@ -25,7 +26,7 @@ class PaymentHistoryCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: AppTheme.inputFill(context),
           borderRadius: BorderRadius.circular(AppRadius.small),
         ),
         child: Column(
@@ -34,14 +35,14 @@ class PaymentHistoryCard extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 14, color: Colors.grey[600]),
+                Icon(icon, size: 14, color: AppTheme.textHint(context)),
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
                     label,
                     style: TextStyle(
                       fontSize: AppTextSize.bodySmall,
-                      color: Colors.grey[600],
+                      color: AppTheme.textHint(context),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -55,10 +56,10 @@ class PaymentHistoryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: AppTextSize.bodyMedium,
-                color: AppColors.textPrimary,
+                color: AppTheme.textPrimary(context),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -70,13 +71,13 @@ class PaymentHistoryCard extends StatelessWidget {
   }
 
   // ── Section label ──────────────────────────────────────────────
-  Widget _sectionLabel(String text) => Padding(
+  Widget _sectionLabel(BuildContext context, String text) => Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child: Text(
           text,
           style: TextStyle(
             fontSize: AppTextSize.caption,
-            color: Colors.grey[500],
+            color: AppTheme.textHint(context),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -99,7 +100,7 @@ class PaymentHistoryCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: AppTheme.inputFill(context),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
               width: double.infinity,
@@ -164,7 +165,7 @@ class PaymentHistoryCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.cardWhite,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(AppRadius.large),
         boxShadow: [
           BoxShadow(
@@ -214,10 +215,10 @@ class PaymentHistoryCard extends StatelessWidget {
                         children: [
                           Text(
                             offenseName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: AppTextSize.bodyLarge,
-                              color: AppColors.textPrimary,
+                              color: AppTheme.textPrimary(context),
                             ),
                           ),
                           if (shortId.isNotEmpty) ...[
@@ -226,7 +227,7 @@ class PaymentHistoryCard extends StatelessWidget {
                               'ID: $shortId',
                               style: TextStyle(
                                 fontSize: AppTextSize.bodySmall,
-                                color: Colors.grey[500],
+                                color: AppTheme.textHint(context),
                               ),
                             ),
                           ],
@@ -275,22 +276,25 @@ class PaymentHistoryCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
 
                 // ── SECTION A: ISSUED DETAILS ────────────────────
-                _sectionLabel('📋  Issued Details'),
+                _sectionLabel(context, '📋  Issued Details'),
                 Row(
                   children: [
                     _infoChip(
+                      context: context,
                       icon: Icons.calendar_today,
                       label: 'Date',
                       value: issuedDate,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _infoChip(
+                      context: context,
                       icon: Icons.access_time,
                       label: 'Time',
                       value: issuedTime,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _infoChip(
+                      context: context,
                       icon: Icons.location_on,
                       label: 'Location',
                       value: shortLocation,
@@ -301,22 +305,25 @@ class PaymentHistoryCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
 
                 // ── SECTION B: PAYMENT DETAILS ───────────────────
-                _sectionLabel('💳  Payment Details'),
+                _sectionLabel(context, '💳  Payment Details'),
                 Row(
                   children: [
                     _infoChip(
+                      context: context,
                       icon: Icons.event_available,
                       label: 'Paid Date',
                       value: paidDate,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _infoChip(
+                      context: context,
                       icon: Icons.schedule,
                       label: 'Paid Time',
                       value: paidTime,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _infoChip(
+                      context: context,
                       icon: Icons.receipt,
                       label: 'Ref ID',
                       value: displayPid,
