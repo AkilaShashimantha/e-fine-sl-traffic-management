@@ -9,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_app/screens/driver/pay_fine_screen.dart';
 import 'package:mobile_app/screens/driver/payment_history_screen.dart';
 import 'package:mobile_app/screens/settings_screen.dart';
+import 'package:mobile_app/screens/driver/wallet_screen.dart';
 import 'package:mobile_app/widgets/demerit_status_card.dart';
 import '../../config/app_constants.dart';
 
@@ -382,7 +383,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         MaterialPageRoute(builder: (context) => const PaymentHistoryScreen())
                       );
                   }),
-                  _buildActionCard(Icons.wallet, "wallet".tr(), Colors.purple, () { }),
+                  _buildActionCard(Icons.wallet, "wallet".tr(), Colors.purple, () {
+                      Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const WalletScreen()));
+                  }),
                   _buildActionCard(Icons.report_problem, "report".tr(), AppColors.errorRed, () { }),
                 ],
               ),
@@ -404,7 +408,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "profile".tr()),
         ],
         onTap: (index) {
-          if (index == 2) { 
+          if (index == 1) {
+            Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const WalletScreen()));
+          } else if (index == 2) { 
             _showProfileDetails();
           }
         },
