@@ -15,6 +15,7 @@ class AppInfo {
 // ── API ───────────────────────────────────────────────
 class ApiConstants {
   static const String baseUrl       = 'https://e-fine-sl-traffic-management-1.onrender.com/api';
+  static const String walletBaseUrl = 'https://efine-mock-data-loader.onrender.com/api/wallet';
   static const int    connectTimeout = 30000;
   static const int    receiveTimeout = 30000;
   static const String authPrefix    = 'Bearer';
