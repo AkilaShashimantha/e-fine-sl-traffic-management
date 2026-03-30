@@ -25,9 +25,42 @@ app.use('/api/payment', require('./routes/paymentRoutes')); // New Payment Route
 app.use('/api/admin', require('./routes/adminRoutes')); // Admin Routes
 app.use('/api/drivers', require('./routes/driverRoutes')); // Driver Demerit Routes
 app.use('/api/kyc',     require('./routes/kyc'));           // KYC Face Verification
+
 app.get('/', (req, res) => {
   res.send('API is running successfully!');
 });
+
+// --- NEW CRITICAL additions for debugging KYC HTML Parsing Error ---
+
+// 1. API 404 handler (forces JSON instead of Express HTML)
+app.use((req, res, next) => {
+  console.warn(`[404] Route Note Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: `API Route not found: ${req.method} ${req.originalUrl}`
+  });
+});
+
+// 2. Global Error Handler (forces JSON instead of Express HTML on crashes, e.g. multer errors)
+app.use((err, req, res, next) => {
+  console.error('[GLOBAL ERROR]', {
+    message: err.message,
+    stack: err.stack,
+    method: req.method,
+    url: req.originalUrl,
+    bodyType: typeof req.body,
+    timestamp: new Date().toISOString()
+  });
+
+  const statusCode = err.status || err.statusCode || 500;
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// -------------------------------------------------------------------
 
 const PORT = process.env.PORT || APP.PORT;
 

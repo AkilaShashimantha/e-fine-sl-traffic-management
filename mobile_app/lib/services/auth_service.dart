@@ -202,8 +202,15 @@ class AuthService {
     );
 
     if (response.statusCode != 201 && response.statusCode != 200) {
-      final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Driver Registration Failed');
+      if (!(response.headers['content-type']?.contains('application/json') ?? false)) {
+        throw Exception('Server Error: Invalid response format (${response.statusCode})');
+      }
+      try {
+        final body = jsonDecode(response.body);
+        throw Exception(body['message'] ?? 'Driver Registration Failed');
+      } on FormatException {
+         throw Exception('Server Error: Invalid JSON response (${response.statusCode})');
+      }
     }
   }
 
@@ -221,8 +228,15 @@ class AuthService {
     );
 
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Verification Failed');
+      if (!(response.headers['content-type']?.contains('application/json') ?? false)) {
+        throw Exception('Server Error: Invalid response format (${response.statusCode})');
+      }
+      try {
+        final body = jsonDecode(response.body);
+        throw Exception(body['message'] ?? 'Verification Failed');
+      } on FormatException {
+         throw Exception('Server Error: Invalid JSON response (${response.statusCode})');
+      }
     }
   }
 

@@ -154,16 +154,21 @@ const registerPolice = async (req, res) => {
 // @route   POST /api/auth/register-driver
 const registerDriver = async (req, res) => {
   const { name, nic, licenseNumber, email, phone, password, kycVerified } = req.body;
+  
+  console.log(`[AUTH/REGISTER-DRIVER] Incoming request for email: ${email}, nic: ${nic}, kycVerified: ${kycVerified}`);
 
   try {
     const driverExists = await Driver.findOne({ email });
     if (driverExists) {
+      console.warn(`[AUTH/REGISTER-DRIVER] Duplicate email attempted: ${email}`);
       return res.status(HTTP.BAD_REQUEST).json({ message: 'Driver already registered' });
     }
 
+    console.log(`[AUTH/REGISTER-DRIVER] Hashing password for: ${email}`);
     const salt = await bcrypt.genSalt(AUTH.BCRYPT_SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    console.log(`[AUTH/REGISTER-DRIVER] Creating driver record for: ${email}`);
     const driver = await Driver.create({
       name,
       nic,
@@ -175,6 +180,7 @@ const registerDriver = async (req, res) => {
     });
 
     if (driver) {
+      console.log(`[AUTH/REGISTER-DRIVER] Successfully created driver ID: ${driver.id}`);
       res.status(HTTP.CREATED).json({
         success: true,
         _id: driver.id,
@@ -185,11 +191,16 @@ const registerDriver = async (req, res) => {
         token: generateToken(driver.id),
       });
     } else {
+      console.error(`[AUTH/REGISTER-DRIVER] Driver creation returned null for: ${email}`);
       res.status(HTTP.BAD_REQUEST).json({ message: 'Invalid driver data' });
     }
 
   } catch (error) {
-    console.error("Driver Register Error:", error.message);
+    console.error("[AUTH/REGISTER-DRIVER] Exception:", {
+      message: error.message,
+      email: email,
+      stack: error.stack
+    });
     res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
   }
 };

@@ -12,6 +12,8 @@ const protect = async (req, res, next) => {
       // "Bearer <token>" 
       // break and take 
       token = req.headers.authorization.split(' ')[1];
+      
+      console.log(`[AUTH/PROTECT] Validating token for URL: ${req.originalUrl}`);
 
       // 2.  Verify the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -27,16 +29,22 @@ const protect = async (req, res, next) => {
         user = await Police.findById(decoded.id).select('-password');
       }
 
+      console.log(`[AUTH/PROTECT] Token resolved to user type: ${!user ? 'NONE' : (user.badgeNumber ? 'Police' : 'Driver')}`);
+
       req.user = user;
       next(); 
 
     } catch (error) {
-      console.error(error);
+      console.error('[AUTH/PROTECT] Token verification failed:', {
+        message: error.message,
+        url: req.originalUrl
+      });
       res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, token failed' });
     }
   }
 
   if (!token) {
+    console.warn(`[AUTH/PROTECT] No token provided for URL: ${req.originalUrl}`);
     res.status(HTTP.UNAUTHORIZED).json({ message: 'Not authorized, no token' });
   }
 };
