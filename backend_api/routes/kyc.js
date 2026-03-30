@@ -106,6 +106,16 @@ router.post(
     { name: 'selfie',  maxCount: 1 },
   ]),
   async (req, res) => {
+    console.log('[KYC] Incoming request:', {
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      path: req.path,
+      hasFiles: !!req.files,
+      licenseName: req.files?.license?.[0]?.originalname,
+      selfieName: req.files?.selfie?.[0]?.originalname,
+      contentType: req.headers['content-type'],
+    });
+
     try {
       // ── Ensure models are loaded (retry if boot-time load failed) ───────────
       if (!modelsLoaded) {
@@ -117,11 +127,18 @@ router.post(
       const selfieFile  = req.files?.selfie?.[0];
 
       if (!licenseFile) {
+        console.warn('[KYC] Missing field: license');
         return res.status(400).json({ success: false, message: 'Missing field: license' });
       }
       if (!selfieFile) {
+        console.warn('[KYC] Missing field: selfie');
         return res.status(400).json({ success: false, message: 'Missing field: selfie' });
       }
+      
+      console.log('[KYC] Starting face detection...', {
+        licenseSizeMB: (licenseFile.size / (1024 * 1024)).toFixed(2),
+        selfieSizeMB: (selfieFile.size / (1024 * 1024)).toFixed(2),
+      });
 
       // ── Extract face descriptors ────────────────────────────────────────────
       const [licenseDetection, selfieDetection] = await Promise.all([
@@ -165,8 +182,12 @@ router.post(
         distance: parseFloat(distance.toFixed(4)),
       });
 
-    } catch (err) {
-      console.error('[KYC] Verification error:', err);
+      } catch (err) {
+      console.error('[KYC] Verification error details:', {
+        message: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
       return res.status(500).json({
         success: false,
         message: 'Face verification failed due to a server error.',
