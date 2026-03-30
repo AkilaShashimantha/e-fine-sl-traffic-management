@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
 import '../../config/app_constants.dart';
+import '../kyc_screen.dart'; // KYC face verification
 
 class DriverSignupScreen extends StatefulWidget {
   const DriverSignupScreen({super.key});
@@ -12,7 +13,8 @@ class DriverSignupScreen extends StatefulWidget {
 
 class _DriverSignupScreenState extends State<DriverSignupScreen> {
   final AuthService _authService = AuthService();
-  bool _isLoading = false;
+  bool _isLoading    = false;
+  bool _kycVerified  = false; // Set to true after KYC passes
 
   final _nameController = TextEditingController();
   final _nicController = TextEditingController();
@@ -60,8 +62,8 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
     );
   }
 
-  Future<void> _registerDriver() async {
-   
+  // ── Field validation (shared between KYC gate and final submit) ────────────
+  bool _validateFields() {
     if (_nameController.text.isEmpty ||
         _nicController.text.isEmpty ||
         _licenseController.text.isEmpty ||
@@ -69,55 +71,72 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
         _phoneController.text.isEmpty ||
         _passwordController.text.isEmpty) {
       _showError("Please fill all fields.");
-      return;
+      return false;
     }
-
-    // 2. NIC Validation
     if (!_isValidNIC(_nicController.text)) {
       _showError("Invalid NIC Number (Format: 123456789V or 199012345678)");
-      return;
+      return false;
     }
-
-    // 3. Email Validation
     if (!_isValidEmail(_emailController.text)) {
       _showError("Please enter a valid Email Address.");
-      return;
+      return false;
     }
-
-    // 4. Phone Validation
     if (!_isValidPhone(_phoneController.text)) {
       _showError("Invalid Phone Number (Must be 10 digits, e.g., 0712345678)");
-      return;
+      return false;
     }
-
-    // 5. Strong Password Validation
     if (!_isPasswordStrong(_passwordController.text)) {
       _showError("Password must include 8+ chars, numbers, letters & symbols (@#\$).");
-      return;
+      return false;
     }
-
-    // 6. Confirm Password Check
     if (_passwordController.text != _confirmPasswordController.text) {
       _showError("Passwords do not match!");
-      return;
+      return false;
     }
+    return true;
+  }
+
+  // ── Phase 1: open KYC screen (called when KYC not yet done) ─────────────────
+  void _openKyc() {
+    if (!_validateFields()) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => KycScreen(
+          onVerified: () {
+            // Called when KYC succeeds — mark verified and auto-submit
+            setState(() => _kycVerified = true);
+            _registerDriver();
+          },
+        ),
+      ),
+    );
+  }
+
+  // ── Phase 2: final registration submit (called after KYC passes) ─────────────
+  Future<void> _registerDriver() async {
+    if (!_validateFields()) return;
 
     setState(() => _isLoading = true);
     try {
       await _authService.registerDriver({
-        'name': _nameController.text,
-        'nic': _nicController.text,
+        'name':          _nameController.text,
+        'nic':           _nicController.text,
         'licenseNumber': _licenseController.text,
-        'email': _emailController.text,
-        'phone': _phoneController.text,
-        'password': _passwordController.text,
+        'email':         _emailController.text,
+        'phone':         _phoneController.text,
+        'password':      _passwordController.text,
+        'kycVerified':   _kycVerified,   // ← KYC flag saved to DB
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration Successful! Please Login."), backgroundColor: AppColors.successGreen),
+          const SnackBar(
+            content:         Text("Registration Successful! Please Login."),
+            backgroundColor: AppColors.successGreen,
+          ),
         );
-    
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
           (route) => false,
@@ -126,7 +145,7 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
     } catch (e) {
       _showError(e.toString());
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -218,24 +237,63 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
 
-            // Register Button
+            // ── KYC verified chip (shown after KYC passes) ────────────────
+            if (_kycVerified)
+              Container(
+                margin:  const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color:        AppColors.successBg,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border:       Border.all(color: AppColors.successGreen),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.verified_user, color: AppColors.successGreen, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Identity Verified ✔',
+                      style: TextStyle(
+                        color:      AppColors.successGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // ── Register / Verify & Register button ───────────────────────
             SizedBox(
-              width: double.infinity,
+              width:  double.infinity,
               height: 50,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _registerDriver,
+              child: ElevatedButton.icon(
+                // If not yet KYC-verified → open KYC screen first
+                // If already verified    → re-submit (edge case safety)
+                onPressed: _isLoading
+                    ? null
+                    : (_kycVerified ? _registerDriver : _openKyc),
+                icon:  const Icon(Icons.verified_user),
+                label: _isLoading
+                    ? const SizedBox(
+                        width: 22, height: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : Text(
+                        _kycVerified ? 'Complete Registration' : 'Verify Identity & Register',
+                        style: const TextStyle(fontSize: 16),
+                      ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreenDark,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white) 
-                  : const Text("Register", style: TextStyle(fontSize: 18)),
               ),
-            )
+            ),
           ],
         ),
       ),

@@ -18,6 +18,7 @@ const driverSchema = mongoose.Schema(
     suspendedAt: { type: Date, default: null },
 
     isVerified: { type: Boolean, default: false },
+    kycVerified: { type: Boolean, default: false }, // KYC face-match verification status
     // ...
     licenseExpiryDate: { type: String }, 
     licenseIssueDate: { type: String }, // 4a
