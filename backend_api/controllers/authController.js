@@ -153,7 +153,7 @@ const registerPolice = async (req, res) => {
 // @desc    Register New Driver
 // @route   POST /api/auth/register-driver
 const registerDriver = async (req, res) => {
-  const { name, nic, licenseNumber, email, phone, password } = req.body;
+  const { name, nic, licenseNumber, email, phone, password, kycVerified } = req.body;
 
   try {
     const driverExists = await Driver.findOne({ email });
@@ -171,6 +171,7 @@ const registerDriver = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
+      kycVerified: kycVerified === true, // Only store true if explicitly passed
     });
 
     if (driver) {
@@ -180,6 +181,7 @@ const registerDriver = async (req, res) => {
         name: driver.name,
         email: driver.email,
         role: ROLES.DRIVER,
+        kycVerified: driver.kycVerified,
         token: generateToken(driver.id),
       });
     } else {

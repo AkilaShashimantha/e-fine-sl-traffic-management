@@ -24,6 +24,7 @@ app.use('/api/fines', require('./routes/fineRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes')); // New Payment Route
 app.use('/api/admin', require('./routes/adminRoutes')); // Admin Routes
 app.use('/api/drivers', require('./routes/driverRoutes')); // Driver Demerit Routes
+app.use('/api/kyc',     require('./routes/kyc'));           // KYC Face Verification
 app.get('/', (req, res) => {
   res.send('API is running successfully!');
 });
