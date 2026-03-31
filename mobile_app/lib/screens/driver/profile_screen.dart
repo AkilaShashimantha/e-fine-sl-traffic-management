@@ -476,6 +476,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () async {
               debugPrint('$_tag Address update submitted.');
+              final nav = Navigator.of(ctx);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               try {
                 final result = await AuthService().updateProfile({
                   'addressLine1': line1Controller.text.trim(),
@@ -500,13 +502,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   });
 
                   // Update cache with latest address
-                  final dialogNavigator = Navigator.of(ctx);
                   await SecureStorageService().cacheProfile(_userData);
                   debugPrint('$_tag Cache updated with new address.');
 
                   if (mounted) {
-                    dialogNavigator.pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    nav.pop();
+                    scaffoldMessenger.showSnackBar(
                       SnackBar(
                         content: Text("profile_updated".tr()),
                         backgroundColor: Colors.green,

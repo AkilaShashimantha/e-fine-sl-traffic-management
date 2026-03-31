@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http_parser: ^4.0.2
 
   # Icons
   cupertino_icons: ^1.0.8

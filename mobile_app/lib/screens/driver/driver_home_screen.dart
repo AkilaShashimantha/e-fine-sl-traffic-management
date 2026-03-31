@@ -136,9 +136,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       // 2. Cache miss — fetch from API
       debugPrint('[HomeScreen] Cache miss — fetching profile from API...');
       if (!mounted) return;
-      final dialogContext = context;
       showDialog(
-        context: dialogContext,
+        context: context,
         barrierDismissible: false,
         builder: (c) => const Center(child: CircularProgressIndicator()),
       );
