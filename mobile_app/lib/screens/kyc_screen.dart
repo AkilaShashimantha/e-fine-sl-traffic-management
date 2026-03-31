@@ -23,6 +23,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import '../../config/app_constants.dart';
@@ -117,6 +118,23 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
     });
   }
 
+  // ── MIME type helper ─────────────────────────────────────────────────────────
+
+  MediaType _getMediaType(String filePath) {
+    final ext = filePath.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return MediaType('image', 'jpeg');
+      case 'png':
+        return MediaType('image', 'png');
+      case 'webp':
+        return MediaType('image', 'webp');
+      default:
+        return MediaType('image', 'jpeg'); // Fallback to JPEG
+    }
+  }
+
   // ── Submission ──────────────────────────────────────────────────────────────
 
   Future<void> _submit() async {
@@ -130,10 +148,18 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
       // Build multipart request
       final request = http.MultipartRequest('POST', uri);
       request.files.add(
-        await http.MultipartFile.fromPath('license', _licenseFile!.path),
+        await http.MultipartFile.fromPath(
+          'license',
+          _licenseFile!.path,
+          contentType: _getMediaType(_licenseFile!.path),
+        ),
       );
       request.files.add(
-        await http.MultipartFile.fromPath('selfie', _selfieFile!.path),
+        await http.MultipartFile.fromPath(
+          'selfie',
+          _selfieFile!.path,
+          contentType: _getMediaType(_selfieFile!.path),
+        ),
       );
 
       print('🚀 [KYC] POST ${uri.toString()}');
