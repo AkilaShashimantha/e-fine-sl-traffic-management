@@ -263,4 +263,25 @@ class AuthService {
       throw Exception('Failed to update image: ${response.body}');
     }
   }
+
+  // Update Driver Profile Address
+  Future<Map<String, dynamic>> updateProfile(Map<String, String> data) async {
+    final token = await getToken();
+    
+    final response = await http.put(
+      Uri.parse('$baseUrl/auth/update-profile'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['message'] ?? 'Failed to update profile');
+    }
+  }
 }

@@ -29,7 +29,11 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController(); 
-
+  
+  final _addressLine1Controller = TextEditingController();
+  final _addressLine2Controller = TextEditingController();
+  final _cityController = TextEditingController();
+  final _postalCodeController = TextEditingController();
   // Password Visibility 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
@@ -75,7 +79,10 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
         _licenseController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _phoneController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+        _passwordController.text.isEmpty ||
+        _addressLine1Controller.text.isEmpty ||
+        _cityController.text.isEmpty ||
+        _postalCodeController.text.isEmpty) {
       _showError("Please fill all fields.");
       return false;
     }
@@ -151,6 +158,10 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
         'profileImage':     _profileImageBase64,
         'licenseFrontImage': _licenseFrontBase64,
         'licenseBackImage':  _licenseBackBase64,
+        'addressLine1':     _addressLine1Controller.text.trim(),
+        'addressLine2':     _addressLine2Controller.text.trim(),
+        'city':             _cityController.text.trim(),
+        'postalCode':       _postalCodeController.text.trim(),
       });
 
       if (mounted) {
@@ -246,7 +257,6 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
             ),
             const SizedBox(height: 15),
 
-            // Confirm Password
             TextField(
               controller: _confirmPasswordController,
               obscureText: !_isConfirmPasswordVisible,
@@ -259,6 +269,43 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
                   onPressed: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
                 ),
               ),
+            ),
+            const SizedBox(height: 15),
+
+            // Residential Address Section
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Residential Address", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _addressLine1Controller,
+              decoration: const InputDecoration(labelText: "Address Line 1", prefixIcon: Icon(Icons.home), border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _addressLine2Controller,
+              decoration: const InputDecoration(labelText: "Address Line 2 (Optional)", prefixIcon: Icon(Icons.home_outlined), border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _cityController,
+                    decoration: const InputDecoration(labelText: "City", prefixIcon: Icon(Icons.location_city), border: OutlineInputBorder()),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _postalCodeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: "Postal Code", border: OutlineInputBorder()),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
