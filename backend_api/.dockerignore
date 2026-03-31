@@ -1,0 +1,28 @@
+# Ignore application-specific node dependencies (Docker will install its own Linux versions)
+node_modules/
+npm-debug.log*
+
+# Ignore environment variables (Sensitive information)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Git and development tracking
+.git
+.gitignore
+.vscode
+.cache
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+logs/

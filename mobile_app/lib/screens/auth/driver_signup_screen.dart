@@ -15,6 +15,12 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
   final AuthService _authService = AuthService();
   bool _isLoading    = false;
   bool _kycVerified  = false; // Set to true after KYC passes
+  String _issueDate = '';
+  String _expiryDate = '';
+  List<Map<String, String>> _vehicleClasses = [];
+  String? _profileImageBase64;
+  String? _licenseFrontBase64;
+  String? _licenseBackBase64;
 
   final _nameController = TextEditingController();
   final _nicController = TextEditingController();
@@ -104,9 +110,19 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => KycScreen(
-          onVerified: () {
-            // Called when KYC succeeds — mark verified and auto-submit
-            setState(() => _kycVerified = true);
+          registeredNIC: _nicController.text,
+          registeredLicenseNumber: _licenseController.text,
+          onVerified: (issue, expiry, classes, profileImageBase64, frontBase64, backBase64) {
+            // Called when KYC succeeds — mark verified, save dates/classes, and auto-submit
+            setState(() {
+              _kycVerified = true;
+              _issueDate = issue;
+              _expiryDate = expiry;
+              _vehicleClasses = classes;
+              _profileImageBase64 = profileImageBase64;
+              _licenseFrontBase64 = frontBase64;
+              _licenseBackBase64 = backBase64;
+            });
             _registerDriver();
           },
         ),
@@ -128,6 +144,13 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
         'phone':         _phoneController.text,
         'password':      _passwordController.text,
         'kycVerified':   _kycVerified,   // ← KYC flag saved to DB
+        'isVerified':    _kycVerified,   // ← Mark as fully verified
+        'licenseIssueDate': _issueDate,
+        'licenseExpiryDate': _expiryDate,
+        'vehicleClasses':   _vehicleClasses,
+        'profileImage':     _profileImageBase64,
+        'licenseFrontImage': _licenseFrontBase64,
+        'licenseBackImage':  _licenseBackBase64,
       });
 
       if (mounted) {

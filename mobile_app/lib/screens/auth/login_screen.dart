@@ -4,7 +4,7 @@ import 'package:mobile_app/screens/auth/user_selection_screen.dart';
 import '../../services/auth_service.dart';
 import '../driver/driver_home_screen.dart';
 import '../police/police_home_screen.dart';
-import '../driver/license_verification_screen.dart';
+
 import '../../config/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -58,29 +58,11 @@ Future<void> _handleLogin() async {
           MaterialPageRoute(builder: (context) => const PoliceHomeScreen()),
         );
       } else {
-        // If the user is a driver, check if they are verified
-        bool isVerified = userData['isVerified'] ?? false;
-        String licenseNum = userData['licenseNumber'] ?? "";
-        String registeredNIC = userData['nic'] ?? "";
-
-        if (isVerified) {
-          // if Verified -> Home Screen
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (context) => const DriverHomeScreen()),
-          );
-        } else {
-            // If not verified -> Go to Verification Screen (passing the license number)
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(
-              builder: (context) => LicenseVerificationScreen(
-                registeredLicenseNumber: licenseNum,
-                registeredNIC: registeredNIC,
-              ),
-            ),
-          );
-        }
+        // Driver → Home Screen directly (KYC is done during registration)
+        Navigator.pushReplacement(
+          context, 
+          MaterialPageRoute(builder: (context) => const DriverHomeScreen()),
+        );
       }
       // ----------------------------
 
