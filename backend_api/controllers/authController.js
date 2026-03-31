@@ -153,7 +153,12 @@ const registerPolice = async (req, res) => {
 // @desc    Register New Driver
 // @route   POST /api/auth/register-driver
 const registerDriver = async (req, res) => {
-  const { name, nic, licenseNumber, email, phone, password, kycVerified, isVerified, licenseIssueDate, licenseExpiryDate, vehicleClasses, profileImage, licenseFrontImage, licenseBackImage } = req.body;
+  const { 
+    name, nic, licenseNumber, email, phone, password, 
+    kycVerified, isVerified, licenseIssueDate, licenseExpiryDate, 
+    vehicleClasses, profileImage, licenseFrontImage, licenseBackImage,
+    addressLine1, addressLine2, city, postalCode
+  } = req.body;
   
   console.log(`[AUTH/REGISTER-DRIVER] Incoming request for email: ${email}, nic: ${nic}, kycVerified: ${kycVerified}, isVerified: ${isVerified}`);
 
@@ -183,7 +188,11 @@ const registerDriver = async (req, res) => {
       vehicleClasses: vehicleClasses || [],
       profileImage,
       licenseFrontImage,
-      licenseBackImage
+      licenseBackImage,
+      addressLine1: addressLine1 || '',
+      addressLine2: addressLine2 || '',
+      city: city || '',
+      postalCode: postalCode || ''
     });
 
     if (driver) {
@@ -331,6 +340,36 @@ const updateProfileImage = async (req, res) => {
   }
 };
 
+// @desc    Update Driver Profile (Address/City/PostalCode)
+// @route   PUT /api/auth/update-profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  const { addressLine1, addressLine2, city, postalCode } = req.body;
+  const id = req.user.id; // From protect middleware
+
+  try {
+    const updatedDriver = await Driver.findByIdAndUpdate(
+      id,
+      { addressLine1, addressLine2, city, postalCode },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedDriver) {
+      return res.status(HTTP.NOT_FOUND).json({ message: 'Driver not found' });
+    }
+
+    res.status(HTTP.OK).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: updatedDriver
+    });
+
+  } catch (error) {
+    console.error(`[AUTH/UPDATE-PROFILE] Error: ${error.message}`);
+    res.status(HTTP.SERVER_ERROR).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 // ... Password Reset Functions ...
 
 const forgotPassword = async (req, res) => {
@@ -399,5 +438,6 @@ module.exports = {
   loginUser,
   getMe,
   verifyDriver,
-  updateProfileImage
+  updateProfileImage,
+  updateProfile
 };

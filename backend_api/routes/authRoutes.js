@@ -12,7 +12,8 @@ const {
   resetPassword,
   getMe,
   verifyDriver,
-  updateProfileImage 
+  updateProfileImage,
+  updateProfile
 } = require('../controllers/authController');
 
 
@@ -33,5 +34,6 @@ router.post('/reset-password', resetPassword);
 router.get('/me', protect, getMe);
 router.put('/verify-driver', protect, verifyDriver);
 router.put('/update-profile-image', protect, updateProfileImage);
+router.put('/update-profile', protect, updateProfile);
 
 module.exports = router;

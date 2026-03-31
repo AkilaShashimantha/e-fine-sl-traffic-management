@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:mobile_app/services/auth_service.dart';
 import 'package:qr_flutter/qr_flutter.dart'; 
 import 'dart:convert'; // JSON encode කරන්න
 import '../../config/app_constants.dart';
@@ -19,10 +20,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late List<dynamic> _vehicleClasses;
   bool _isLoadingVehicles = false;
 
+  late String _addressLine1;
+  late String _addressLine2;
+  late String _city;
+  late String _postalCode;
+
   @override
   void initState() {
     super.initState();
     _vehicleClasses = widget.userData['vehicleClasses'] ?? [];
+    
+    // Migration fallback for old data: use 'address' if Line 1 is empty
+    _addressLine1 = widget.userData['addressLine1'] ?? widget.userData['address'] ?? '';
+    _addressLine2 = widget.userData['addressLine2'] ?? '';
+    _city = widget.userData['city'] ?? '';
+    _postalCode = widget.userData['postalCode'] ?? '';
     
     // driver user profile ekata navigate wenakotama data field null nan api call ekak ywanna.
     if (_vehicleClasses.isEmpty) {
@@ -253,17 +265,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               return _buildClassChip(item.toString(), '', '');
                             }).toList(),
                           ),
-                        // Address Section
+                    // Address Section
                     const Divider(height: 30),
-                    Text("residential_address".tr(), style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(height: 5),
-                    Text(
-                      "${widget.userData['address'] ?? ''}, ${widget.userData['city'] ?? ''}",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("residential_address".tr(), style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                          onPressed: _showEditAddressDialog,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
                     ),
-                    Text(
-                      "${"postal".tr()}: ${widget.userData['postalCode'] ?? ''}",
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
+                    const SizedBox(height: 5),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_addressLine1.isNotEmpty)
+                          Text(_addressLine1, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        if (_addressLine2.isNotEmpty)
+                          Text(_addressLine2, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        if (_city.isNotEmpty)
+                          Text(_city, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(
+                          "${"postal".tr()}: $_postalCode",
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -326,6 +357,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text("Close"),
           )
+        ],
+      ),
+    );
+  }
+
+  // --- EDIT ADDRESS DIALOG ---
+  void _showEditAddressDialog() {
+    final line1Controller = TextEditingController(text: _addressLine1);
+    final line2Controller = TextEditingController(text: _addressLine2);
+    final cityController = TextEditingController(text: _city);
+    final postalController = TextEditingController(text: _postalCode);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("edit_address".tr()),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: line1Controller,
+                decoration: InputDecoration(labelText: "${"address_label".tr()} 1"),
+              ),
+              TextField(
+                controller: line2Controller,
+                decoration: InputDecoration(labelText: "${"address_label".tr()} 2"),
+              ),
+              TextField(
+                controller: cityController,
+                decoration: InputDecoration(labelText: "city_label".tr()),
+              ),
+              TextField(
+                controller: postalController,
+                decoration: InputDecoration(labelText: "postal_label".tr()),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text("cancel".tr()),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final result = await AuthService().updateProfile({
+                  'addressLine1': line1Controller.text.trim(),
+                  'addressLine2': line2Controller.text.trim(),
+                  'city': cityController.text.trim(),
+                  'postalCode': postalController.text.trim(),
+                });
+
+                if (result['success'] == true) {
+                  setState(() {
+                    _addressLine1 = line1Controller.text.trim();
+                    _addressLine2 = line2Controller.text.trim();
+                    _city = cityController.text.trim();
+                    _postalCode = postalController.text.trim();
+                  });
+                  if (mounted) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("profile_updated".tr()), backgroundColor: Colors.green),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: Text("save".tr()),
+          ),
         ],
       ),
     );

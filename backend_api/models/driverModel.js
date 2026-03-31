@@ -27,7 +27,8 @@ const driverSchema = mongoose.Schema(
     licenseIssueDate: { type: String }, // 4a
     dateOfBirth: { type: String }, // 3
     
-    address: { type: String },
+    addressLine1: { type: String },
+    addressLine2: { type: String },
     city: { type: String },
     postalCode: { type: String },
     
