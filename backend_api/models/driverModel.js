@@ -19,6 +19,9 @@ const driverSchema = mongoose.Schema(
 
     isVerified: { type: Boolean, default: false },
     kycVerified: { type: Boolean, default: false }, // KYC face-match verification status
+    profileImage: { type: String }, // Base64 profile photo extracted from KYC selfie
+    licenseFrontImage: { type: String }, // Base64 license front side
+    licenseBackImage: { type: String }, // Base64 license back side
     // ...
     licenseExpiryDate: { type: String }, 
     licenseIssueDate: { type: String }, // 4a

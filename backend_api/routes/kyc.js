@@ -29,14 +29,15 @@ const multer  = require('multer');
 const path    = require('path');
 
 // ── canvas must be required BEFORE face-api ───────────────────────────────────
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage, Canvas, Image, ImageData } = require('canvas');
 
 // ── face-api with Node.js (canvas) back-end (using WASM) ─────────────────────
 const faceapi = require('@vladmandic/face-api/dist/face-api.node-wasm.js');
+faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 const MODELS_PATH = path.join(__dirname, '..', 'face_models');
-const THRESHOLD   = 0.6; // Euclidean distance threshold: < 0.6 = same person
+const THRESHOLD   = 0.5; // Euclidean distance threshold: < 0.5 = same person
 let modelsLoaded  = false;
 
 // ── Multer — in-memory storage (no disk writes) ───────────────────────────────

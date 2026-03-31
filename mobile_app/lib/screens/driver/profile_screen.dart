@@ -63,9 +63,9 @@ class ProfileScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
                         ),
-                        child: const CircleAvatar(
+                        child: CircleAvatar(
                           radius: 50,
-                          backgroundImage: AssetImage('assets/icon/icon.png'),
+                          backgroundImage: _getProfileImage(userData['profileImage']),
                           backgroundColor: Colors.white,
                         ),
                       ),
@@ -176,6 +176,13 @@ class ProfileScreen extends StatelessWidget {
                         _buildDateColumn(context, "expiry_date".tr(), expiryDate, isExpiry: true),
                       ],
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildSmallImageCard(context, "front_view".tr(), userData['licenseFrontImage']),
+                        _buildSmallImageCard(context, "back_view".tr(), userData['licenseBackImage']),
+                      ],
+                    ),
                     const Divider(height: 30),
 
                     // Classes
@@ -188,8 +195,14 @@ class ProfileScreen extends StatelessWidget {
                           spacing: 10,
                           runSpacing: 10,
                           children: vehicleClasses.map((item) {
-                            String cat = item is Map ? item['category'] : item.toString();
-                            return _buildClassChip(cat);
+                            if (item is Map) {
+                              return _buildClassChip(
+                                item['category']?.toString() ?? '', 
+                                item['issueDate']?.toString() ?? '', 
+                                item['expiryDate']?.toString() ?? ''
+                              );
+                            }
+                            return _buildClassChip(item.toString(), '', '');
                           }).toList(),
                         ),
                         // Address Section
@@ -271,6 +284,41 @@ class ProfileScreen extends StatelessWidget {
   }
 
   // --- UI HELPERS ---
+  
+  ImageProvider _getProfileImage(String? base64String) {
+    if (base64String != null && base64String.isNotEmpty) {
+      try {
+        final cleanBase64 = base64String.contains(',') ? base64String.split(',').last : base64String;
+        return MemoryImage(base64Decode(cleanBase64));
+      } catch (e) {
+        // Fallback silently
+      }
+    }
+    return const AssetImage('assets/icon/icon.png');
+  }
+
+  Widget _buildSmallImageCard(BuildContext context, String label, String? base64) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10)),
+        const SizedBox(height: 5),
+        Container(
+          width: 140,
+          height: 85,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+            image: DecorationImage(
+              image: _getProfileImage(base64),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   BoxDecoration _boxDecoration(BuildContext context) {
     return BoxDecoration(
       color: Theme.of(context).cardColor,
@@ -316,23 +364,42 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildClassChip(String label) {
+  Widget _buildClassChip(String category, String issue, String expiry) {
     return Builder(
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          width: 130, // Fixed width for nice grid-like wrap
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: isDark ? AppColors.primaryGreenDark.withValues(alpha: 0.25) : AppColors.primaryGreenLight.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: isDark ? AppColors.primaryGreen : AppColors.primaryGreenDark.withValues(alpha: 0.4)),
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.primaryGreenLight : AppColors.primaryGreenDark,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                category,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: isDark ? AppColors.primaryGreenLight : AppColors.primaryGreenDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              if (issue.isNotEmpty)
+                Text(
+                  "Iss: $issue",
+                  style: TextStyle(fontSize: 10, color: isDark ? Colors.white70 : Colors.black87),
+                ),
+              if (expiry.isNotEmpty)
+                Text(
+                  "Exp: $expiry",
+                  style: TextStyle(fontSize: 10, color: isDark ? Colors.white70 : Colors.black87),
+                ),
+            ],
           ),
         );
       },

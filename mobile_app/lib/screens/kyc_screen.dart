@@ -1,12 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/screens/kyc_screen.dart
-// e-Fine SL — KYC Face Verification Screen
+// e-Fine SL — KYC Face + License OCR Verification Screen
 //
 // Multi-step flow:
 //   Step 1 → Upload or capture driving license photo (front side)
-//   Step 2 → Take a live selfie using the FRONT camera
-//   Step 3 → Preview both images
-//   Step 4 → Submit to POST /api/kyc/verify
+//            + On-device OCR scans NIC & license number
+//   Step 2 → Show scanned data — verify NIC & license number match registration
+//   Step 3 → Take a live selfie using the FRONT camera
+//   Step 4 → Preview both images & submit to POST /api/kyc/verify
 //   Result → Success (green) or Failure (red) with retry option
 //
 // Usage:
@@ -14,6 +15,8 @@
 //     context,
 //     MaterialPageRoute(
 //       builder: (_) => KycScreen(
+//         registeredNIC: '199012345678',
+//         registeredLicenseNumber: 'B1234567',
 //         onVerified: () { /* proceed with registration */ },
 //       ),
 //     ),
@@ -25,6 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'dart:convert';
 import '../../config/app_constants.dart';
 
@@ -33,9 +38,20 @@ import '../../config/app_constants.dart';
 class KycScreen extends StatefulWidget {
   /// Called when the KYC verification succeeds. The caller should use this
   /// callback to proceed with the next step (e.g. final registration submit).
-  final VoidCallback onVerified;
+  final Function(String issueDate, String expiryDate, List<Map<String, String>> vehicleClasses, String profileImageBase64, String licenseFrontBase64, String licenseBackBase64) onVerified;
 
-  const KycScreen({super.key, required this.onVerified});
+  /// The NIC number entered during registration (used to verify OCR result).
+  final String registeredNIC;
+
+  /// The license number entered during registration (used to verify OCR result).
+  final String registeredLicenseNumber;
+
+  const KycScreen({
+    super.key,
+    required this.onVerified,
+    required this.registeredNIC,
+    required this.registeredLicenseNumber,
+  });
 
   @override
   State<KycScreen> createState() => _KycScreenState();
@@ -43,17 +59,27 @@ class KycScreen extends StatefulWidget {
 
 // ─── Step enum ───────────────────────────────────────────────────────────────
 
-enum _KycStep { license, selfie, preview, loading, success, failure }
+enum _KycStep { licenseFront, licenseBack, ocrResult, selfie, preview, loading, success, failure }
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
 class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
   // Current UI step
-  _KycStep _step = _KycStep.license;
+  _KycStep _step = _KycStep.licenseFront;
 
   // Captured images
   File? _licenseFile;
+  File? _licenseBackFile;
   File? _selfieFile;
+
+  // OCR scan results
+  String _scannedNIC = '';
+  String _scannedLicense = '';
+  String _scannedIssueDate = '';
+  String _scannedExpiryDate = '';
+  List<Map<String, String>> _extractedClasses = [];
+  bool _isScanning = false;
+  bool _ocrMatched = false;
 
   // Result from backend
   bool   _verified  = false;
@@ -66,12 +92,22 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
   late Animation<double>   _iconScaleAnim;
 
   final ImagePicker _picker = ImagePicker();
+  DocumentScanner? _documentScanner;
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
+    _documentScanner = DocumentScanner(
+      options: DocumentScannerOptions(
+        // `documentFormats` defaults to JPEG out of the box.
+        mode: ScannerMode.filter,     // Base UI with filter controls
+        pageLimit: 1,                 // Enforce 1 page per click to explicitly guide users
+        isGalleryImport: true,        // Allow choosing from gallery in scanner UI
+      ),
+    );
+
     _iconAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -85,30 +121,61 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _iconAnimController.dispose();
+    _documentScanner?.close();
     super.dispose();
   }
 
-  // ── Image picking helpers ───────────────────────────────────────────────────
+  // ── Image picking & scanning helpers ───────────────────────────────────────
 
-  /// Pick license from gallery or camera (rear camera preferred for documents)
-  Future<void> _pickLicense(ImageSource source) async {
-    final XFile? picked = await _picker.pickImage(
-      source:       source,
-      imageQuality: 85,
-      preferredCameraDevice: CameraDevice.rear,
-    );
-    if (picked == null) return;
-    setState(() {
-      _licenseFile = File(picked.path);
-      _step        = _KycStep.selfie; // Auto-advance
-    });
+  /// Open the ML Kit Document Scanner with corner-detection frame overlay
+  Future<void> _scanLicenseFront() async {
+    try {
+      final DocumentScanningResult? result = await _documentScanner?.scanDocument();
+
+      if (result != null && result.images != null && result.images!.isNotEmpty) {
+        setState(() {
+          _licenseFile = File(result.images!.first);
+          _step = _KycStep.licenseBack; // Move to explicitly scanning the back
+        });
+      }
+    } catch (e) {
+      if (!e.toString().contains('Canceled by user')) {
+        setState(() => _errorMsg = 'Scanner Error: $e');
+      }
+    }
+  }
+
+  Future<void> _scanLicenseBack() async {
+    try {
+      final DocumentScanningResult? result = await _documentScanner?.scanDocument();
+
+      if (result != null && result.images != null && result.images!.isNotEmpty) {
+        final backImagePath = result.images!.first;
+
+        setState(() {
+          _licenseBackFile = File(backImagePath);
+          _step = _KycStep.ocrResult; // Proceed to result review (it will run OCR on FRONT now)
+          _isScanning = true;
+          _extractedClasses.clear();
+        });
+
+        // Run OCR on the previously captured front image
+        await _runOCR(_licenseFile!.path);
+      }
+    } catch (e) {
+      if (!e.toString().contains('Canceled by user')) {
+        setState(() => _errorMsg = 'Scanner Error: $e');
+      }
+    }
   }
 
   /// Capture selfie using FRONT camera only
   Future<void> _captureSelfie() async {
     final XFile? picked = await _picker.pickImage(
       source:       ImageSource.camera,
-      imageQuality: 85,
+      imageQuality: 80,
+      maxWidth:     1000,
+      maxHeight:    1000,
       preferredCameraDevice: CameraDevice.front,
     );
     if (picked == null) return;
@@ -118,7 +185,173 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
     });
   }
 
-  // ── MIME type helper ─────────────────────────────────────────────────────────
+  // ── OCR Processing ─────────────────────────────────────────────────────────
+
+  Future<void> _runOCR(String imagePath) async {
+    final inputImage = InputImage.fromFilePath(imagePath);
+    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+    try {
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      final text = recognizedText.text;
+
+      // A. License Number Extraction (field 5 on Sri Lankan license)
+      RegExp licenseNoRegExp = RegExp(r'5\.\s*([A-Z0-9\s\.\-]+)');
+      RegExpMatch? licenseMatch = licenseNoRegExp.firstMatch(text);
+
+      String rawLicense = licenseMatch?.group(1) ?? "";
+      if (rawLicense.isEmpty) {
+        RegExp fallback = RegExp(r'[A-Z]\d{7}|\d{12}');
+        rawLicense = fallback.firstMatch(text.replaceAll(' ', ''))?.group(0) ?? "";
+      }
+      String cleanLicense = rawLicense.replaceAll(RegExp(r'[^A-Z0-9]'), '');
+      if (cleanLicense.length > 8 && RegExp(r'^[A-Z]').hasMatch(cleanLicense)) {
+        cleanLicense = cleanLicense.substring(0, 8);
+      }
+
+      // B. NIC Extraction (field 4d on Sri Lankan license)
+      String scannedNIC = '';
+      RegExp nicLabelRegExp = RegExp(r'4d\.\s*([0-9]{9}[vVxX]|[0-9]{12})');
+      RegExpMatch? nicMatch = nicLabelRegExp.firstMatch(text.replaceAll(' ', ''));
+      if (nicMatch != null) {
+        scannedNIC = nicMatch.group(1) ?? "";
+      } else {
+        RegExp nicFallback = RegExp(r'\b([0-9]{9}[vVxX]|[0-9]{12})\b');
+        Iterable<RegExpMatch> matches = nicFallback.allMatches(text.replaceAll(' ', ''));
+        for (var m in matches) {
+          String found = m.group(0)!;
+          if (found != cleanLicense) {
+            scannedNIC = found;
+            break;
+          }
+        }
+      }
+
+      // C. Dates Extraction
+      RegExp dateRegExp = RegExp(r'\d{2}[./-]\d{2}[./-]\d{4}|\d{4}[./-]\d{2}[./-]\d{2}');
+      List<String> foundDates = dateRegExp.allMatches(text).map((m) => m.group(0)!).toList();
+
+      String issueDate = '';
+      String expiryDate = '';
+      if (foundDates.length >= 2) {
+        issueDate  = foundDates[foundDates.length - 2];
+        expiryDate = foundDates.last;
+      } else if (foundDates.isNotEmpty) {
+        expiryDate = foundDates.last;
+      }
+
+      // D. Verify against registration data
+      final regNIC = widget.registeredNIC.toUpperCase().replaceAll(' ', '');
+      final regLicense = widget.registeredLicenseNumber.toUpperCase().replaceAll(' ', '');
+      final scanNIC = scannedNIC.toUpperCase().replaceAll(' ', '');
+      final scanLicense = cleanLicense.toUpperCase().replaceAll(' ', '');
+
+      final nicMatch2 = scanNIC == regNIC;
+      final licenseMatch2 = scanLicense == regLicense;
+
+      setState(() {
+        _scannedNIC       = scannedNIC;
+        _scannedLicense   = cleanLicense;
+        _scannedIssueDate = issueDate;
+        _scannedExpiryDate = expiryDate;
+        _ocrMatched       = nicMatch2 && licenseMatch2;
+        _isScanning       = false;
+        _step             = _KycStep.ocrResult; // Move to OCR result step
+      });
+    } catch (e) {
+      setState(() {
+        _isScanning = false;
+        _step       = _KycStep.ocrResult;
+        _errorMsg   = 'Scanning failed: $e';
+      });
+    } finally {
+      textRecognizer.close();
+    }
+  }
+
+  Future<void> _runBackOCR(String imagePath) async {
+    final inputImage = InputImage.fromFilePath(imagePath);
+    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+    try {
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      _extractBackData(recognizedText);
+    } catch (e) {
+      debugPrint("Back OCR failed: $e");
+    } finally {
+      textRecognizer.close();
+    }
+  }
+
+  void _extractBackData(RecognizedText recognizedText) {
+    List<Map<String, String>> validResults = [];
+    
+    // Configs
+    List<String> targetClasses = ['A1', 'A', 'B1', 'B', 'C1', 'C', 'CE', 'D1', 'D', 'DE', 'G1', 'G', 'J'];
+    RegExp datePattern = RegExp(r'^\d{2}[.]\d{2}[.]\d{4}$'); 
+
+    // Add elements to list
+    List<TextElement> allElements = [];
+    for (TextBlock block in recognizedText.blocks) {
+      for (TextLine line in block.lines) {
+        for (TextElement element in line.elements) {
+          allElements.add(element);
+        }
+      }
+    }
+
+    // Find category and date elements
+    List<TextElement> foundCategoryElements = [];
+    List<TextElement> foundDateElements = [];
+
+    for (TextElement element in allElements) {
+      String text = element.text.trim().toUpperCase().replaceAll('.', ''); 
+      if (targetClasses.contains(text)) {
+        foundCategoryElements.add(element);
+      } else if (datePattern.hasMatch(element.text.trim())) {
+        foundDateElements.add(element);
+      }
+    }
+
+    // Matching Logic (Y-Axis Alignment)
+    for (TextElement catEl in foundCategoryElements) {
+      double catY = catEl.boundingBox.center.dy;
+      double yThreshold = 30.0; 
+
+      List<TextElement> matchingDates = foundDateElements.where((dateEl) {
+        double dateY = dateEl.boundingBox.center.dy;
+        // Should be on the right side of the Category
+        return (dateY - catY).abs() < yThreshold && dateEl.boundingBox.left > catEl.boundingBox.left;
+      }).toList();
+
+      // Sort dates from left to right (Issue -> Expiry)
+      matchingDates.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
+
+      // Must have exactly or at least 2 dates (Issue & Expiry) to be a valid "allowed" class
+      if (matchingDates.length >= 2) {
+        String category = catEl.text.trim().toUpperCase();
+        String issue = matchingDates[0].text.trim();
+        String expiry = matchingDates[1].text.trim();
+
+        bool exists = validResults.any((e) => e['category'] == category);
+        if (!exists) {
+          validResults.add({
+            'category': category,
+            'issueDate': issue,
+            'expiryDate': expiry
+          });
+        }
+      }
+    }
+
+    if (validResults.isNotEmpty) {
+      setState(() { 
+        _extractedClasses = validResults; 
+      });
+    }
+  }
+
+  // ── MIME type helper ───────────────────────────────────────────────────────
 
   MediaType _getMediaType(String filePath) {
     final ext = filePath.split('.').last.toLowerCase();
@@ -232,10 +465,16 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
 
   void _retry() {
     setState(() {
-      _licenseFile = null;
-      _selfieFile  = null;
-      _errorMsg    = '';
-      _step        = _KycStep.license;
+      _licenseFile   = null;
+      _licenseBackFile = null;
+      _selfieFile    = null;
+      _scannedNIC    = '';
+      _scannedLicense = '';
+      _scannedIssueDate = '';
+      _scannedExpiryDate = '';
+      _ocrMatched    = false;
+      _errorMsg      = '';
+      _step          = _KycStep.licenseFront;
     });
     _iconAnimController.reset();
   }
@@ -264,8 +503,12 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
 
   Widget _buildBody() {
     switch (_step) {
-      case _KycStep.license:
-        return _buildLicenseStep();
+      case _KycStep.licenseFront:
+        return _buildLicenseFrontStep();
+      case _KycStep.licenseBack:
+        return _buildLicenseBackStep();
+      case _KycStep.ocrResult:
+        return _buildOcrResultStep();
       case _KycStep.selfie:
         return _buildSelfieStep();
       case _KycStep.preview:
@@ -281,14 +524,14 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
 
   // ── Step 1: License Photo ───────────────────────────────────────────────────
 
-  Widget _buildLicenseStep() {
+  Widget _buildLicenseFrontStep() {
     return SingleChildScrollView(
-      key: const ValueKey('license'),
+      key: const ValueKey('licenseFront'),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _stepIndicator(currentStep: 1, totalSteps: 3),
+          _stepIndicator(currentStep: 1, totalSteps: 5),
           const SizedBox(height: 28),
 
           // Illustration area
@@ -298,7 +541,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
             title: 'Driving License Photo',
             subtitle:
                 'Upload a clear, well-lit photo of your driving license (front side). '
-                'Make sure your face on the license is visible.',
+                'Make sure your face, NIC number, and license number are visible.',
           ),
 
           const SizedBox(height: 32),
@@ -312,24 +555,273 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
             const SizedBox(height: 16),
           ],
 
-          // Action buttons
-          _primaryButton(
-            label:   'Take Photo',
-            icon:    Icons.camera_alt,
-            onTap:   () => _pickLicense(ImageSource.camera),
+          // Scanning indicator
+          if (_isScanning) ...[
+            const SizedBox(height: 16),
+            const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen)),
+            const SizedBox(height: 8),
+            const Text(
+              'Scanning license details…',
+              style: TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ] else ...[
+            // Action buttons
+            _primaryButton(
+              label:   'Scan Front Side',
+              icon:    Icons.document_scanner,
+              onTap:   _scanLicenseFront,
+            ),
+            const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Step 2: License Back Photo ─────────────────────────────────────────────
+
+  Widget _buildLicenseBackStep() {
+    return SingleChildScrollView(
+      key: const ValueKey('licenseBack'),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _stepIndicator(currentStep: 2, totalSteps: 5),
+          const SizedBox(height: 28),
+
+          // Illustration area
+          _illustrationCard(
+            icon:  Icons.flip,
+            color: AppColors.primaryGreen,
+            title: 'Scan Back Side',
+            subtitle:
+                'Now tap to scan the back side of your driving license. '
+                'This helps us read your allowed vehicle categories.',
           ),
+
+          const SizedBox(height: 32),
+
+          if (_isScanning) ...[
+            const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen)),
+            const SizedBox(height: 8),
+            const Text(
+              'Analyzing license data…',
+              style: TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ] else ...[
+            _primaryButton(
+              label:   'Scan Back Side',
+              icon:    Icons.flip,
+              onTap:   _scanLicenseBack,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Step 3: OCR Result ──────────────────────────────────────────────────────
+
+  Widget _buildOcrResultStep() {
+    return SingleChildScrollView(
+      key: const ValueKey('ocrResult'),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _stepIndicator(currentStep: 3, totalSteps: 5),
+          const SizedBox(height: 28),
+
+          const Text(
+            'Scanned License Details',
+            style: TextStyle(
+              fontSize: AppTextSize.heading2,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _ocrMatched
+                ? 'Your license details match your registration. Proceed to selfie.'
+                : 'Some details do not match. Please retake the photo or check your registration.',
+            style: TextStyle(
+              fontSize: AppTextSize.bodyMedium,
+              color: _ocrMatched ? AppColors.successGreen : AppColors.errorRed,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+
+          // Scanned data card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.large),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                _ocrRow(
+                  label:    'NIC Number',
+                  scanned:  _scannedNIC.isEmpty ? 'Not detected' : _scannedNIC,
+                  expected: widget.registeredNIC,
+                  matches:  _scannedNIC.toUpperCase().replaceAll(' ', '') ==
+                            widget.registeredNIC.toUpperCase().replaceAll(' ', ''),
+                ),
+                const Divider(),
+                _ocrRow(
+                  label:    'License Number',
+                  scanned:  _scannedLicense.isEmpty ? 'Not detected' : _scannedLicense,
+                  expected: widget.registeredLicenseNumber,
+                  matches:  _scannedLicense.toUpperCase().replaceAll(' ', '') ==
+                            widget.registeredLicenseNumber.toUpperCase().replaceAll(' ', ''),
+                ),
+                if (_scannedIssueDate.isNotEmpty || _scannedExpiryDate.isNotEmpty) ...[
+                  const Divider(),
+                  _ocrInfoRow('Issue Date', _scannedIssueDate.isEmpty ? '—' : _scannedIssueDate),
+                  const SizedBox(height: 4),
+                  _ocrInfoRow('Expiry Date', _scannedExpiryDate.isEmpty ? '—' : _scannedExpiryDate),
+                ],
+                if (_extractedClasses.isNotEmpty) ...[
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Allowed Vehicle Classes',
+                      style: TextStyle(
+                        fontSize: AppTextSize.bodySmall,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Wrap(
+                    spacing: 8.0, 
+                    runSpacing: 8.0,
+                    children: _extractedClasses.map((c) => Chip(
+                      label: Text("${c['category']}\nIss: ${c['issueDate']}\nExp: ${c['expiryDate']}"), 
+                      backgroundColor: Colors.green[50],
+                      side: const BorderSide(color: AppColors.successGreen),
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                    )).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          if (_ocrMatched) ...[
+            _primaryButton(
+              label: 'Proceed to Selfie',
+              icon:  Icons.camera_front,
+              onTap: () => setState(() => _step = _KycStep.selfie),
+            ),
+          ],
           const SizedBox(height: 12),
           _secondaryButton(
-            label: 'Upload from Gallery',
-            icon:  Icons.photo_library,
-            onTap: () => _pickLicense(ImageSource.gallery),
+            label: 'Retake License Photo',
+            icon:  Icons.refresh,
+            onTap: () {
+              setState(() {
+                _licenseFile = null;
+                _scannedNIC = '';
+                _scannedLicense = '';
+                _scannedIssueDate = '';
+                _scannedExpiryDate = '';
+                _extractedClasses.clear();
+                _ocrMatched = false;
+                _step = _KycStep.licenseFront;
+              });
+            },
           ),
         ],
       ),
     );
   }
 
-  // ── Step 2: Selfie ──────────────────────────────────────────────────────────
+  // ── OCR Row Helpers ─────────────────────────────────────────────────────────
+
+  Widget _ocrRow({
+    required String label,
+    required String scanned,
+    required String expected,
+    required bool matches,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: AppTextSize.bodySmall,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Scanned: $scanned',
+                      style: TextStyle(
+                        fontSize: AppTextSize.bodyMedium,
+                        color: matches ? AppColors.textPrimary : AppColors.errorRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Expected: $expected',
+                      style: const TextStyle(
+                        fontSize: AppTextSize.bodySmall,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                matches ? Icons.check_circle : Icons.cancel,
+                color: matches ? AppColors.successGreen : AppColors.errorRed,
+                size: 28,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ocrInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: AppTextSize.bodySmall, color: AppColors.textSecondary)),
+        Text(value, style: const TextStyle(fontSize: AppTextSize.bodyMedium, fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  // ── Step 3: Selfie ──────────────────────────────────────────────────────────
 
   Widget _buildSelfieStep() {
     return SingleChildScrollView(
@@ -338,7 +830,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _stepIndicator(currentStep: 2, totalSteps: 3),
+          _stepIndicator(currentStep: 3, totalSteps: 4),
           const SizedBox(height: 28),
 
           _illustrationCard(
@@ -369,14 +861,14 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
           _secondaryButton(
             label: 'Back',
             icon:  Icons.arrow_back,
-            onTap: () => setState(() => _step = _KycStep.license),
+            onTap: () => setState(() => _step = _KycStep.ocrResult),
           ),
         ],
       ),
     );
   }
 
-  // ── Step 3: Preview ─────────────────────────────────────────────────────────
+  // ── Step 4: Preview ─────────────────────────────────────────────────────────
 
   Widget _buildPreviewStep() {
     return SingleChildScrollView(
@@ -385,7 +877,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _stepIndicator(currentStep: 3, totalSteps: 3),
+          _stepIndicator(currentStep: 4, totalSteps: 4),
           const SizedBox(height: 24),
 
           const Text(
@@ -523,9 +1015,33 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                 ),
-                onPressed: () {
-                  widget.onVerified(); // Notify caller
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  String profileBase64 = '';
+                  String frontBase64 = '';
+                  String backBase64 = '';
+
+                  if (_selfieFile != null) {
+                    final bytes = await _selfieFile!.readAsBytes();
+                    profileBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                  }
+                  if (_licenseFile != null) {
+                    final bytes = await _licenseFile!.readAsBytes();
+                    frontBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                  }
+                  if (_licenseBackFile != null) {
+                    final bytes = await _licenseBackFile!.readAsBytes();
+                    backBase64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                  }
+
+                  widget.onVerified(
+                    _scannedIssueDate, 
+                    _scannedExpiryDate, 
+                    _extractedClasses, 
+                    profileBase64,
+                    frontBase64,
+                    backBase64,
+                  ); // Notify caller
+                  if (context.mounted) Navigator.of(context).pop();
                 },
               ),
             ),

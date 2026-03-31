@@ -153,9 +153,9 @@ const registerPolice = async (req, res) => {
 // @desc    Register New Driver
 // @route   POST /api/auth/register-driver
 const registerDriver = async (req, res) => {
-  const { name, nic, licenseNumber, email, phone, password, kycVerified } = req.body;
+  const { name, nic, licenseNumber, email, phone, password, kycVerified, isVerified, licenseIssueDate, licenseExpiryDate, vehicleClasses, profileImage, licenseFrontImage, licenseBackImage } = req.body;
   
-  console.log(`[AUTH/REGISTER-DRIVER] Incoming request for email: ${email}, nic: ${nic}, kycVerified: ${kycVerified}`);
+  console.log(`[AUTH/REGISTER-DRIVER] Incoming request for email: ${email}, nic: ${nic}, kycVerified: ${kycVerified}, isVerified: ${isVerified}`);
 
   try {
     const driverExists = await Driver.findOne({ email });
@@ -177,6 +177,13 @@ const registerDriver = async (req, res) => {
       phone,
       password: hashedPassword,
       kycVerified: kycVerified === true, // Only store true if explicitly passed
+      isVerified: isVerified === true,   // Mark as verified if KYC passed
+      licenseIssueDate,
+      licenseExpiryDate,
+      vehicleClasses: vehicleClasses || [],
+      profileImage,
+      licenseFrontImage,
+      licenseBackImage
     });
 
     if (driver) {
@@ -240,6 +247,8 @@ const loginUser = async (req, res) => {
         position: user.position,
         policeStation: user.policeStation,
         profileImage: user.profileImage,
+        licenseFrontImage: user.licenseFrontImage,
+        licenseBackImage: user.licenseBackImage,
 
         isVerified: user.isVerified,
         licenseNumber: user.licenseNumber,
