@@ -77,7 +77,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
   String _scannedLicense = '';
   String _scannedIssueDate = '';
   String _scannedExpiryDate = '';
-  List<Map<String, String>> _extractedClasses = [];
+  final List<Map<String, String>> _extractedClasses = [];
   bool _isScanning = false;
   bool _ocrMatched = false;
 
