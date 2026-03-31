@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'api_logger.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_constants.dart';
+import 'secure_storage_service.dart';
 
 class AuthService {
   // Emulator: 10.0.2.2 | Real Device: Your PC IP Address
@@ -19,8 +21,9 @@ class AuthService {
 
   // Logout
   Future<void> logout() async {
-    await _storage.delete(key: PrefKeys.authToken);
-    await _storage.delete(key: PrefKeys.user);
+    debugPrint('[AuthService] logout() called.');
+    await SecureStorageService().clearAllAuth();
+    debugPrint('[AuthService] All session data cleared via SecureStorageService.');
   }
 
   // Login (Common for Police & Driver)

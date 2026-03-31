@@ -166,7 +166,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
     for (TextElement catEl in foundCategoryElements) {
       double catY = catEl.boundingBox.center.dy;
       
-      // Y පරතරය (Threshold): කැමරාව ටිකක් ඇල වුනත් අල්ලගන්න (Pixel 30ක් වගේ)
+      // Y Threshold: Allow for slight camera tilt (e.g., around 30 Pixels)
       double yThreshold = 30.0; 
 
       List<TextElement> matchingDates = foundDateElements.where((dateEl) {
@@ -222,7 +222,7 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
       return;
     }
 
-    // Validation - මුලින්ම හිස්ද බලනවා, ඊට පස්සේ මැච් වෙනවද බලනවා
+    // Validation - First check if empty, then check for match
     // Validation 2: NIC Check
     if (scannedNIC.isEmpty || scannedNIC != registeredNIC) {
       _showDialog("Verification Failed", "Scanned NIC ($scannedNIC) does not match registered ($registeredNIC).");
@@ -247,8 +247,8 @@ class _LicenseVerificationScreenState extends State<LicenseVerificationScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // මෙන්න නිවැරදි කරපු කොටස:
-      // දත්ත සියල්ලම තනි Map {} එකක් ඇතුලේ යැවිය යුතුයි.
+      // Here is the corrected part:
+      // All data must be sent inside a single Map {}.
       await AuthService().verifyDriverLicense({
         'licenseNumber': _licenseNoController.text,
         'issueDate': _issueDateController.text.isEmpty ? _expiryDateController.text : _issueDateController.text,

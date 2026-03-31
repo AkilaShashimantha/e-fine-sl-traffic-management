@@ -338,7 +338,7 @@ class _PoliceSignupScreenState extends State<PoliceSignupScreen> {
               TextField(controller: _nameController, decoration: const InputDecoration(labelText: "Full Name", prefixIcon: Icon(Icons.person), border: OutlineInputBorder())),
               const SizedBox(height: 15),
 
-              // Rank Dropdown (Fixed: initialValue භාවිතා කිරීම)
+              // Rank Dropdown (Fixed: using initialValue)
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: "Select Rank / Position",
