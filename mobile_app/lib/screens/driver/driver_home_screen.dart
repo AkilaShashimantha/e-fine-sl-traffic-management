@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/screens/driver/profile_screen.dart';
 import 'package:mobile_app/services/auth_service.dart';
+import 'package:mobile_app/services/secure_storage_service.dart';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_app/services/fine_service.dart';
@@ -112,35 +113,58 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
 
   void _showProfileDetails() async {
-    // 1. Loading Dialog
-    showDialog(
-      context: context, 
-      barrierDismissible: false,
-      builder: (c) => const Center(child: CircularProgressIndicator())
-    );
+    debugPrint('[HomeScreen] _showProfileDetails() called.');
 
     try {
-      // 2. Fetch Data from Backend
-      final userData = await AuthService().getUserProfile();
-      
-      // Check mounted
-      if (!mounted) return;
+      // 1. Check secure storage cache first
+      debugPrint('[HomeScreen] Checking secure storage for cached profile...');
+      final cached = await SecureStorageService().getCachedProfile();
 
-      // 3. Close Loading
-      Navigator.pop(context); 
-      
-      // 4. Navigate to New Profile Page 
+      if (cached != null) {
+        // Cache hit — navigate instantly, no loading dialog needed
+        debugPrint('[HomeScreen] Cache hit — navigating to ProfileScreen instantly.');
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(userData: cached),
+          ),
+        );
+        return;
+      }
+
+      // 2. Cache miss — fetch from API
+      debugPrint('[HomeScreen] Cache miss — fetching profile from API...');
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (c) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final userData = await AuthService().getUserProfile();
+      debugPrint('[HomeScreen] Profile fetched from API. Caching now...');
+
+      await SecureStorageService().cacheProfile(userData);
+      debugPrint('[HomeScreen] Profile cached. Navigating to ProfileScreen.');
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ProfileScreen(userData: userData),
         ),
       );
-      
+
     } catch (e) {
+      debugPrint('[HomeScreen] Error in _showProfileDetails(): $e');
       if (!mounted) return;
-      Navigator.pop(context); 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
     }
   }
 

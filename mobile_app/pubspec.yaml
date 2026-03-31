@@ -5,11 +5,12 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0' # මම මෙය standard version එකට වෙනස් කළා, ගැටළු අඩු වෙන්න.
+  sdk: '>=3.0.0 <4.0.0' # Changed to standard version to reduce issues.
 
 dependencies:
   flutter:
     sdk: flutter
+  http_parser: ^4.0.2
 
   # Icons
   cupertino_icons: ^1.0.8

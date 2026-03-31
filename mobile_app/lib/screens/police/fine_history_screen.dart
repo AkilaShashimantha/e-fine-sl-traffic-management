@@ -39,7 +39,7 @@ class _FineHistoryScreenState extends State<FineHistoryScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          // Error එකේ "Exception:" කෑල්ල අයින් කරලා පෙන්වන්න
+          // Remove the "Exception:" part from the Error message to show
           _errorMessage = e.toString().replaceAll("Exception:", "").trim();
           _isLoading = false;
         });
@@ -47,7 +47,7 @@ class _FineHistoryScreenState extends State<FineHistoryScreen> {
     }
   }
 
-  // දිනය Format කිරීම
+  // Format the Date
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return "Unknown Date";
     try {

@@ -129,6 +129,7 @@ class PrefKeys {
   static const String position     = 'position';
   static const String profileImage = 'serverProfileImage';
   static const String user         = 'user';
+  static const String profileData  = 'profile_data'; // Cached driver profile JSON
 }
 
 // ── EXTERNAL MEDIA/ASSETS ───────────────────────────────────────

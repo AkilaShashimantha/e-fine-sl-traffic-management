@@ -132,7 +132,7 @@ class _NewFineScreenState extends State<NewFineScreen> {
         "vehicleNumber": _vehicleController.text,
 
         // --- CRITICAL PART: Sending ID and Name to the Backend ---
-        "offenseId": _selectedOffenseData!['_id'], // Database ID එක
+        "offenseId": _selectedOffenseData!['_id'], // Database ID
         "offenseName": _selectedOffenseData!['offenseName'] ??
             _selectedOffenseData!['name'],
 

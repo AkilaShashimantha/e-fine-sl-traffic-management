@@ -77,13 +77,12 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
   String _scannedLicense = '';
   String _scannedIssueDate = '';
   String _scannedExpiryDate = '';
-  List<Map<String, String>> _extractedClasses = [];
+  final List<Map<String, String>> _extractedClasses = [];
   bool _isScanning = false;
   bool _ocrMatched = false;
 
   // Result from backend
   bool   _verified  = false;
-  double _distance  = 0;
   int    _score     = 0;
   String _errorMsg  = '';
 
@@ -269,87 +268,6 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _runBackOCR(String imagePath) async {
-    final inputImage = InputImage.fromFilePath(imagePath);
-    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-
-    try {
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-      _extractBackData(recognizedText);
-    } catch (e) {
-      debugPrint("Back OCR failed: $e");
-    } finally {
-      textRecognizer.close();
-    }
-  }
-
-  void _extractBackData(RecognizedText recognizedText) {
-    List<Map<String, String>> validResults = [];
-    
-    // Configs
-    List<String> targetClasses = ['A1', 'A', 'B1', 'B', 'C1', 'C', 'CE', 'D1', 'D', 'DE', 'G1', 'G', 'J'];
-    RegExp datePattern = RegExp(r'^\d{2}[.]\d{2}[.]\d{4}$'); 
-
-    // Add elements to list
-    List<TextElement> allElements = [];
-    for (TextBlock block in recognizedText.blocks) {
-      for (TextLine line in block.lines) {
-        for (TextElement element in line.elements) {
-          allElements.add(element);
-        }
-      }
-    }
-
-    // Find category and date elements
-    List<TextElement> foundCategoryElements = [];
-    List<TextElement> foundDateElements = [];
-
-    for (TextElement element in allElements) {
-      String text = element.text.trim().toUpperCase().replaceAll('.', ''); 
-      if (targetClasses.contains(text)) {
-        foundCategoryElements.add(element);
-      } else if (datePattern.hasMatch(element.text.trim())) {
-        foundDateElements.add(element);
-      }
-    }
-
-    // Matching Logic (Y-Axis Alignment)
-    for (TextElement catEl in foundCategoryElements) {
-      double catY = catEl.boundingBox.center.dy;
-      double yThreshold = 30.0; 
-
-      List<TextElement> matchingDates = foundDateElements.where((dateEl) {
-        double dateY = dateEl.boundingBox.center.dy;
-        // Should be on the right side of the Category
-        return (dateY - catY).abs() < yThreshold && dateEl.boundingBox.left > catEl.boundingBox.left;
-      }).toList();
-
-      // Sort dates from left to right (Issue -> Expiry)
-      matchingDates.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
-
-      // Must have exactly or at least 2 dates (Issue & Expiry) to be a valid "allowed" class
-      if (matchingDates.length >= 2) {
-        String category = catEl.text.trim().toUpperCase();
-        String issue = matchingDates[0].text.trim();
-        String expiry = matchingDates[1].text.trim();
-
-        bool exists = validResults.any((e) => e['category'] == category);
-        if (!exists) {
-          validResults.add({
-            'category': category,
-            'issueDate': issue,
-            'expiryDate': expiry
-          });
-        }
-      }
-    }
-
-    if (validResults.isNotEmpty) {
-      setState(() { 
-        _extractedClasses = validResults; 
-      });
-    }
-  }
 
   // ── MIME type helper ───────────────────────────────────────────────────────
 
@@ -395,8 +313,8 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
         ),
       );
 
-      print('🚀 [KYC] POST ${uri.toString()}');
-      print('📦 Files: license=${_licenseFile?.lengthSync()}B, selfie=${_selfieFile?.lengthSync()}B');
+      debugPrint('🚀 [KYC] POST ${uri.toString()}');
+      debugPrint('📦 Files: license=${_licenseFile?.lengthSync()}B, selfie=${_selfieFile?.lengthSync()}B');
 
       // Send with timeout
       final streamedResponse = await request.send().timeout(
@@ -406,13 +324,13 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
 
       final response = await http.Response.fromStream(streamedResponse);
       
-      print('📥 [KYC] Response Status: ${response.statusCode}');
-      print('📥 [KYC] Content-Type: ${response.headers['content-type']}');
+      debugPrint('📥 [KYC] Response Status: ${response.statusCode}');
+      debugPrint('📥 [KYC] Content-Type: ${response.headers['content-type']}');
       
       // Prevent parsing HTML error pages
       if (!(response.headers['content-type']?.contains('application/json') ?? false)) {
         final sample = response.body.length > 50 ? '${response.body.substring(0, 50)}...' : response.body;
-        print('❌ [KYC] Non-JSON Response: $sample');
+        debugPrint('❌ [KYC] Non-JSON Response: $sample');
         
         setState(() {
           _step = _KycStep.failure;
@@ -427,7 +345,6 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
         setState(() {
           _verified = body['verified'] == true;
           _score    = (body['score']    as num?)?.toInt()    ?? 0;
-          _distance = (body['distance'] as num?)?.toDouble() ?? 1.0;
           _step     = _verified ? _KycStep.success : _KycStep.failure;
           _errorMsg = _verified ? '' : 'Face does not match the license photo.';
         });
@@ -444,13 +361,13 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
         _errorMsg = 'No internet connection. Please check your network and retry.';
       });
     } on FormatException catch (e) {
-      print('❌ [KYC] FormatException Parse Error: $e');
+      debugPrint('❌ [KYC] FormatException Parse Error: $e');
       setState(() {
         _step     = _KycStep.failure;
         _errorMsg = 'Bad response from server. Please try again.';
       });
     } catch (e) {
-      print('❌ [KYC] Unexpected Error: $e');
+      debugPrint('❌ [KYC] Unexpected Error: $e');
       setState(() {
         _step     = _KycStep.failure;
         _errorMsg = e.toString().replaceFirst('Exception: ', '');
@@ -665,7 +582,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(AppRadius.large),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -1041,7 +958,8 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
                     frontBase64,
                     backBase64,
                   ); // Notify caller
-                  if (context.mounted) Navigator.of(context).pop();
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
                 },
               ),
             ),
@@ -1179,7 +1097,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(AppRadius.large),
         boxShadow: [
           BoxShadow(
-            color:  Colors.grey.withOpacity(0.1),
+            color:  Colors.grey.withValues(alpha: 0.1),
             blurRadius: 12,
             offset:     const Offset(0, 4),
           ),
@@ -1218,7 +1136,7 @@ class _KycScreenState extends State<KycScreen> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(AppRadius.medium),
         boxShadow: [
           BoxShadow(
-            color:      Colors.grey.withOpacity(0.1),
+            color:      Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
           ),
         ],
