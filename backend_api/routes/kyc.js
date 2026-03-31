@@ -44,11 +44,19 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
   fileFilter: (_req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp/;
-    const ok =
-      allowed.test(path.extname(file.originalname).toLowerCase()) &&
-      allowed.test(file.mimetype.replace('image/', ''));
-    ok ? cb(null, true) : cb(new Error('Only JPEG/PNG/WebP images are accepted'));
+    // Check file extension (primary check — mobile clients don't always send correct MIME)
+    const allowedExt = /\.(jpe?g|png|webp)$/i;
+    const extOk = allowedExt.test(file.originalname);
+
+    // Accept common image MIME types + application/octet-stream (Flutter mobile default)
+    const allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'application/octet-stream'];
+    const mimeOk = allowedMime.includes(file.mimetype);
+
+    console.log(`[KYC] File filter: name=${file.originalname}, mime=${file.mimetype}, extOk=${extOk}, mimeOk=${mimeOk}`);
+
+    (extOk && mimeOk)
+      ? cb(null, true)
+      : cb(new Error(`Only JPEG/PNG/WebP images are accepted (got: ${file.originalname}, mime: ${file.mimetype})`));
   },
 });
 
